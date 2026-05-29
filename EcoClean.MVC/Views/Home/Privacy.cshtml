@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Chính sách bảo mật";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5" style="max-width:760px">
+    <h2 class="fw-bold mb-4">Chính sách bảo mật</h2>
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <p class="text-muted">EcoClean cam kết bảo vệ thông tin cá nhân của người dùng. Chúng tôi thu thập và sử dụng dữ liệu chỉ nhằm mục đích cải thiện trải nghiệm sức khỏe của bạn.</p>
+        <h5 class="fw-bold mt-3">Dữ liệu chúng tôi thu thập</h5>
+        <ul>
+            <li>Thông tin tài khoản: email, tên</li>
+            <li>Dữ liệu sức khỏe: chiều cao, cân nặng, BMI, TDEE</li>
+            <li>Lịch sử ăn uống và cân nặng</li>
+            <li>Ảnh thực phẩm (Premium) — xử lý xong sẽ không lưu trữ lâu dài</li>
+        </ul>
+        <h5 class="fw-bold mt-3">Bảo mật</h5>
+        <p class="text-muted">Mật khẩu được mã hóa bằng BCrypt. JWT token có thời hạn 7 ngày. Kết nối HTTPS bắt buộc trên môi trường production.</p>
+        <h5 class="fw-bold mt-3">Liên hệ</h5>
+        <p class="text-muted mb-0">Nếu có thắc mắc, vui lòng liên hệ: <strong>support@ecoclean.vn</strong></p>
+    </div>
+</div>

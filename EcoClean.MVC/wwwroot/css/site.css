@@ -1,0 +1,62 @@
+/* ── EcoClean Site CSS ──────────────────────────────── */
+
+:root {
+    --eco-green: #22c55e;
+    --eco-dark:  #15803d;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f9fafb;
+    color: #1f2937;
+}
+
+/* Navbar */
+.navbar-brand { letter-spacing: -0.5px; font-size: 1.3rem; }
+.navbar .nav-link:hover { opacity: .85; }
+
+/* Cards */
+.card { transition: box-shadow .2s; }
+
+/* Hover lift */
+.hover-lift:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.1) !important; }
+
+/* BMI category colors */
+.bg-success-subtle { background-color: rgba(34,197,94,.12) !important; }
+.bg-warning-subtle { background-color: rgba(245,158,11,.12) !important; }
+.bg-danger-subtle  { background-color: rgba(239, 68, 68,.12) !important; }
+.bg-info-subtle    { background-color: rgba( 14,165,233,.12) !important; }
+.bg-primary-subtle { background-color: rgba( 59,130,246,.12) !important; }
+
+/* Smooth page transitions */
+main { animation: fadeIn .25s ease-in; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+
+/* Progress bars */
+.progress { background: rgba(0,0,0,.06); }
+
+/* Chat bubbles */
+#chatMessages { scroll-behavior: smooth; }
+
+/* Recipe card */
+.recipe-card .card-body { padding-bottom: 0; }
+
+/* Border dashed */
+.border-dashed { border-style: dashed !important; }
+
+/* Accordion */
+.accordion-button:not(.collapsed) { background: rgba(245,158,11,.08); color: #d97706; box-shadow: none; }
+.accordion-button:focus { box-shadow: none; }
+
+/* Form inputs */
+.form-control:focus, .form-select:focus {
+    border-color: var(--eco-green);
+    box-shadow: 0 0 0 .2rem rgba(34,197,94,.2);
+}
+
+/* Mobile tweaks */
+@media (max-width: 576px) {
+    .display-4 { font-size: 1.8rem; }
+    .display-5 { font-size: 1.5rem; }
+    .display-6 { font-size: 1.3rem; }
+}

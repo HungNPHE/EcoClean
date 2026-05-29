@@ -1,0 +1,174 @@
+@{
+    ViewData["Title"] = "Nâng cấp Premium";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <i class="bi bi-stars text-warning display-4 d-block mb-3"></i>
+        <h2 class="fw-bold">Nâng cấp Premium</h2>
+        <p class="text-muted">Mở khoá toàn bộ tính năng AI của EcoClean</p>
+    </div>
+
+    <!-- Plan selector -->
+    <div class="row g-4 justify-content-center mb-5">
+        <div class="col-md-4">
+            <div class="card border-2 rounded-4 shadow-sm plan-card p-4 text-center h-100"
+                 data-plan="Monthly" data-amount="99000"
+                 style="cursor:pointer;border-color:#e5e7eb !important"
+                 onclick="selectPlan(this)">
+                <h5 class="fw-bold">Gói tháng</h5>
+                <div class="display-5 fw-bold text-success my-3">99.000đ</div>
+                <div class="text-muted">/ tháng</div>
+                <hr />
+                <ul class="list-unstyled text-start small">
+                    <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Quét ảnh phân tích dinh dưỡng</li>
+                    <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Chatbot dinh dưỡng 24/7</li>
+                    <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Thực đơn AI cá nhân hóa</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-2 rounded-4 shadow plan-card p-4 text-center h-100 active"
+                 data-plan="Yearly" data-amount="799000"
+                 style="cursor:pointer;border-color:#f59e0b !important;background:linear-gradient(135deg,#fffbeb,#fef9c3)"
+                 onclick="selectPlan(this)">
+                <span class="badge bg-warning text-dark mb-2">Tiết kiệm 33%</span>
+                <h5 class="fw-bold">Gói năm</h5>
+                <div class="display-5 fw-bold text-warning my-3">799.000đ</div>
+                <div class="text-muted">/ năm (~66.500đ/tháng)</div>
+                <hr />
+                <ul class="list-unstyled text-start small">
+                    <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tất cả tính năng Premium</li>
+                    <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Ưu tiên hỗ trợ</li>
+                    <li class="py-1"><i class="bi bi-star-fill text-warning me-2"></i>Tiết kiệm nhất</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment section -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div id="paymentSection">
+                <div class="text-center mb-4">
+                    <button id="payBtn" class="btn btn-warning btn-lg fw-bold px-5 rounded-pill"
+                            onclick="createPayment()">
+                        <i class="bi bi-qr-code me-2"></i>Tạo mã QR thanh toán
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Section (hidden until created) -->
+            <div id="qrSection" class="d-none">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-qr-code text-success me-2"></i>Quét QR để thanh toán</h5>
+                    <img id="qrImage" src="" alt="QR Code" class="img-fluid rounded-3 mb-3" style="max-width:240px" />
+                    <div class="alert alert-info rounded-3 text-start small mb-3">
+                        <strong><i class="bi bi-info-circle me-1"></i>Hướng dẫn:</strong>
+                        <ol class="mb-0 ps-3 mt-1">
+                            <li>Mở app ngân hàng, chọn QR Pay</li>
+                            <li>Quét mã QR phía trên</li>
+                            <li>Kiểm tra thông tin và xác nhận</li>
+                            <li>Nhấn "Tôi đã thanh toán" bên dưới</li>
+                        </ol>
+                    </div>
+                    <div class="d-flex gap-2 mb-3">
+                        <input type="text" id="txRefInput" class="form-control rounded-3"
+                               placeholder="Nhập mã giao dịch (tuỳ chọn)" />
+                    </div>
+                    <button class="btn btn-success w-100 py-2 fw-bold rounded-3" onclick="confirmPayment()">
+                        <i class="bi bi-check-circle me-2"></i>Tôi đã thanh toán
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm mt-2 rounded-pill w-100" onclick="resetPayment()">
+                        Huỷ & chọn gói khác
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success -->
+            <div id="successSection" class="d-none">
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center"
+                     style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
+                    <i class="bi bi-check-circle-fill text-success display-3 mb-3 d-block"></i>
+                    <h4 class="fw-bold text-success">Thanh toán thành công!</h4>
+                    <p class="text-muted mb-4">Tài khoản của bạn đã được nâng cấp Premium.<br>Cảm ơn bạn đã tin tưởng EcoClean!</p>
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-success rounded-pill px-5">
+                        <i class="bi bi-house me-2"></i>Về Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let selectedPlan = 'Yearly';
+let currentSubId = null;
+
+function selectPlan(el) {
+    document.querySelectorAll('.plan-card').forEach(c => {
+        c.style.borderColor = '#e5e7eb';
+        c.style.background  = '';
+    });
+    el.style.borderColor = '#f59e0b';
+    el.style.background  = 'linear-gradient(135deg,#fffbeb,#fef9c3)';
+    selectedPlan = el.dataset.plan;
+}
+
+async function createPayment() {
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang tạo...';
+    try {
+        const res  = await fetch('/Premium/Subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ plan: selectedPlan })
+        });
+        const data = await res.json();
+        currentSubId = data.id;
+        if (data.qrCode) {
+            document.getElementById('qrImage').src = data.qrCode;
+            document.getElementById('paymentSection').classList.add('d-none');
+            document.getElementById('qrSection').classList.remove('d-none');
+        } else {
+            alert('Không tạo được mã QR. Vui lòng thử lại.');
+        }
+    } catch (e) {
+        alert('Lỗi: ' + e.message);
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-qr-code me-2"></i>Tạo mã QR thanh toán';
+}
+
+async function confirmPayment() {
+    const txRef = document.getElementById('txRefInput').value.trim();
+    if (!currentSubId) return;
+    try {
+        const res  = await fetch('/Premium/ConfirmPayment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ subId: currentSubId, txRef: txRef || 'manual' })
+        });
+        const data = await res.json();
+        if (data.status === 'Paid') {
+            document.getElementById('qrSection').classList.add('d-none');
+            document.getElementById('successSection').classList.remove('d-none');
+            setTimeout(() => location.href = '/Dashboard', 3000);
+        } else {
+            alert('Chưa xác nhận được thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.');
+        }
+    } catch (e) {
+        alert('Lỗi xác nhận: ' + e.message);
+    }
+}
+
+function resetPayment() {
+    currentSubId = null;
+    document.getElementById('qrSection').classList.add('d-none');
+    document.getElementById('paymentSection').classList.remove('d-none');
+}
+</script>
+}

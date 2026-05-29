@@ -1,0 +1,94 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Quản lý thanh toán";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var subs   = ViewBag.Subs is JsonElement s && s.ValueKind == JsonValueKind.Array
+                 ? s.EnumerateArray().ToList() : new();
+    var status = ViewBag.Status as string;
+}
+
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    @foreach (var (lbl, val, color) in new[] {
+        ("Tất cả",    "",         "secondary"),
+        ("Chờ duyệt", "Pending",  "warning"),
+        ("Đã thanh toán","Paid",  "success"),
+        ("Thất bại",  "Failed",   "danger"),
+    })
+    {
+        <a asp-action="Subscriptions" asp-route-status="@val"
+           class="btn btn-sm btn-@(status == val || (val == "" && status == null) ? color : "outline-" + color) rounded-pill">
+            @lbl
+        </a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Người dùng</th>
+                    <th>Gói</th>
+                    <th class="text-end">Số tiền</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th>Mã GD</th>
+                    <th>Ngày tạo</th>
+                    <th>Hết hạn</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sub in subs)
+                {
+                    var sid    = sub.TryGetProperty("id",             out var i)   ? i.GetInt32()    : 0;
+                    var plan   = sub.TryGetProperty("plan",           out var pl)  ? pl.GetString()  : "";
+                    var amount = sub.TryGetProperty("amount",         out var am)  ? am.GetDecimal() : 0m;
+                    var st     = sub.TryGetProperty("status",         out var s2)  ? s2.GetString()  : "";
+                    var txRef  = sub.TryGetProperty("transactionRef", out var tx)  ? tx.GetString()  : "";
+                    var paidAt = sub.TryGetProperty("paidAt",         out var pa) && pa.ValueKind != JsonValueKind.Null
+                                 ? pa.GetDateTime().ToString("dd/MM/yy HH:mm") : "—";
+                    var expiry = sub.TryGetProperty("expiresAt",      out var ex) && ex.ValueKind != JsonValueKind.Null
+                                 ? ex.GetDateTime().ToString("dd/MM/yyyy") : "—";
+
+                    var userEl  = sub.TryGetProperty("user", out var u) ? (JsonElement?)u : null;
+                    var uEmail  = userEl?.TryGetProperty("email",    out var ue) == true ? ue.GetString() : "";
+                    var uName   = userEl?.TryGetProperty("fullName", out var un) == true ? un.GetString() : "";
+
+                    var badgeColor = st switch { "Paid" => "success", "Pending" => "warning", "Failed" => "danger", _ => "secondary" };
+                    <tr>
+                        <td class="text-muted">@sid</td>
+                        <td>
+                            <div class="fw-semibold">@uName</div>
+                            <div class="text-muted">@uEmail</div>
+                        </td>
+                        <td><span class="badge bg-primary-subtle text-primary">@plan</span></td>
+                        <td class="text-end fw-semibold">@amount.ToString("N0")₫</td>
+                        <td class="text-center">
+                            <span class="badge bg-@badgeColor-subtle text-@badgeColor">@st</span>
+                        </td>
+                        <td class="text-muted" style="font-size:.75rem">@txRef</td>
+                        <td class="text-muted">@paidAt</td>
+                        <td class="text-muted">@expiry</td>
+                        <td>
+                            @if (st == "Pending")
+                            {
+                                <form method="post" asp-action="ConfirmSubscription" class="d-inline"
+                                      onsubmit="return confirm('Xác nhận thanh toán #@sid?')">
+                                    <input type="hidden" name="id" value="@sid" />
+                                    <button class="btn btn-sm btn-success rounded-pill py-0 px-2">
+                                        <i class="bi bi-check-lg me-1"></i>Duyệt
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!subs.Any())
+                {
+                    <tr><td colspan="9" class="text-center text-muted py-4">Không có dữ liệu</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

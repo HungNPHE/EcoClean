@@ -1,0 +1,199 @@
+@{
+    ViewData["Title"] = "Thực đơn AI";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-robot text-warning fs-2 me-3"></i>
+        <div>
+            <h2 class="fw-bold mb-0">Thực đơn AI <span class="badge bg-warning text-dark ms-2">Premium</span></h2>
+            <p class="text-muted mb-0">AI tạo thực đơn Eat Clean cá nhân hóa theo mục tiêu của bạn</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Config Form -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-sliders me-2 text-warning"></i>Thiết lập thực đơn</h5>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mục tiêu</label>
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var (val, lbl, icon, color) in new[] {
+                            ("LoseWeight","Giảm cân",     "bi-arrow-down-circle","success"),
+                            ("Maintain",  "Giữ dáng",     "bi-dash-circle",      "primary"),
+                            ("GainWeight","Tăng cân",     "bi-arrow-up-circle",  "danger")
+                        })
+                        {
+                            <label class="d-flex align-items-center gap-2 p-2 rounded-3 border cursor-pointer goal-opt"
+                                   style="cursor:pointer">
+                                <input type="radio" name="goal" value="@val" class="form-check-input"
+                                       @(val == "LoseWeight" ? "checked" : "") />
+                                <i class="bi @icon text-@color fs-5"></i>
+                                <span class="fw-semibold">@lbl</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Số ngày</label>
+                    <div class="d-flex gap-2">
+                        @foreach (var d in new[] { 3, 5, 7, 14 })
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill flex-fill day-btn @(d == 7 ? "active" : "")"
+                                    onclick="selectDays(@d, this)">@d ngày</button>
+                        }
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="btn btn-warning w-100 py-2 fw-bold rounded-3" onclick="generatePlan()">
+                    <i class="bi bi-stars me-2"></i>Tạo thực đơn với AI
+                </button>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div class="col-md-8">
+            <!-- Placeholder -->
+            <div id="planPlaceholder" class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                <i class="bi bi-calendar-week display-4 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Chọn mục tiêu và nhấn tạo thực đơn</h5>
+                <p class="text-muted small">AI sẽ tạo thực đơn Eat Clean phù hợp với chỉ số BMI và TDEE của bạn</p>
+            </div>
+
+            <!-- Loading -->
+            <div id="planLoading" class="card border-0 shadow-sm rounded-4 p-5 text-center d-none">
+                <div class="spinner-border text-warning mb-3" style="width:3rem;height:3rem"></div>
+                <h5 class="fw-bold">AI đang tạo thực đơn...</h5>
+                <p class="text-muted">Đang tính toán dinh dưỡng cá nhân hóa cho bạn</p>
+                <div class="progress rounded-pill mt-3" style="height:8px">
+                    <div id="genProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width:0%"></div>
+                </div>
+            </div>
+
+            <!-- Plan display -->
+            <div id="planResult" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0" id="planTitle"></h5>
+                    <button class="btn btn-outline-warning btn-sm rounded-pill" onclick="generatePlan()">
+                        <i class="bi bi-arrow-repeat me-1"></i>Tạo lại
+                    </button>
+                </div>
+                <div id="planDays" class="accordion rounded-4 overflow-hidden shadow-sm"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let selectedDays = 7;
+
+function selectDays(d, btn) {
+    selectedDays = d;
+    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+async function generatePlan() {
+    const goal = document.querySelector('input[name="goal"]:checked')?.value ?? 'LoseWeight';
+    document.getElementById('planPlaceholder').classList.add('d-none');
+    document.getElementById('planResult').classList.add('d-none');
+    document.getElementById('planLoading').classList.remove('d-none');
+    document.getElementById('generateBtn').disabled = true;
+
+    const prog = document.getElementById('genProgress');
+    let pct = 0;
+    const interval = setInterval(() => { pct = Math.min(pct + 8, 90); prog.style.width = pct + '%'; }, 400);
+
+    try {
+        const res  = await fetch('/Premium/AIPlanGenerate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ goal, durationDays: selectedDays })
+        });
+        const data = await res.json();
+        clearInterval(interval);
+        prog.style.width = '100%';
+
+        document.getElementById('planTitle').textContent = data.title ?? `Thực đơn ${selectedDays} ngày`;
+        renderPlan(data);
+
+        setTimeout(() => {
+            document.getElementById('planLoading').classList.add('d-none');
+            document.getElementById('planResult').classList.remove('d-none');
+        }, 500);
+    } catch (e) {
+        clearInterval(interval);
+        alert('Lỗi tạo thực đơn: ' + e.message);
+        document.getElementById('planLoading').classList.add('d-none');
+        document.getElementById('planPlaceholder').classList.remove('d-none');
+    }
+    document.getElementById('generateBtn').disabled = false;
+}
+
+function renderPlan(data) {
+    let planObj;
+    try {
+        const raw = typeof data.planJson === 'string' ? data.planJson : JSON.stringify(data.planJson);
+        const clean = raw.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();
+        planObj = JSON.parse(clean);
+    } catch { planObj = null; }
+
+    const container = document.getElementById('planDays');
+    container.innerHTML = '';
+
+    if (!planObj?.days) {
+        container.innerHTML = `<div class="alert alert-info rounded-4">
+            <pre class="mb-0 small">${escHtml(data.planJson ?? '')}</pre></div>`;
+        return;
+    }
+
+    const mealColors = { breakfast:'warning', lunch:'success', dinner:'primary', snack:'info' };
+    const mealNames  = { breakfast:'Bữa sáng', lunch:'Bữa trưa', dinner:'Bữa tối', snack:'Snack' };
+
+    planObj.days.forEach((day, i) => {
+        const id = `day${i}`;
+        const meals = ['breakfast','lunch','dinner','snack'];
+        const mealHtml = meals.map(m => {
+            const md = day[m];
+            if (!md) return '';
+            return `<div class="d-flex justify-content-between align-items-center border-bottom py-2 px-3">
+                <div>
+                    <span class="badge bg-${mealColors[m]}-subtle text-${mealColors[m]} rounded-pill me-2">${mealNames[m]}</span>
+                    <span class="fw-semibold">${escHtml(md.name ?? '')}</span>
+                </div>
+                <div class="text-end small text-muted">
+                    <span class="text-success fw-bold">${md.calories ?? '--'}kcal</span>
+                    <span class="ms-2">P:${md.protein ?? '-'}g C:${md.carb ?? '-'}g F:${md.fat ?? '-'}g</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        container.insertAdjacentHTML('beforeend', `
+            <div class="accordion-item border-0 border-bottom">
+                <h2 class="accordion-header">
+                    <button class="accordion-button ${i > 0 ? 'collapsed' : ''} fw-bold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#${id}">
+                        <i class="bi bi-calendar-day me-2 text-warning"></i>
+                        Ngày ${day.day}
+                        <span class="ms-auto me-3 badge bg-warning-subtle text-warning rounded-pill">
+                            ${day.totalCalories ?? '--'} kcal
+                        </span>
+                    </button>
+                </h2>
+                <div id="${id}" class="accordion-collapse collapse ${i === 0 ? 'show' : ''}">
+                    <div class="accordion-body p-0">${mealHtml}</div>
+                </div>
+            </div>`);
+    });
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+}

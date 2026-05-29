@@ -1,0 +1,204 @@
+@{
+    ViewData["Title"] = "Quét ảnh món ăn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-camera-fill text-warning fs-2 me-3"></i>
+        <div>
+            <h2 class="fw-bold mb-0">Quét ảnh món ăn <span class="badge bg-warning text-dark ms-2">Premium</span></h2>
+            <p class="text-muted mb-0">AI tự động nhận diện và phân tích dinh dưỡng</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Upload -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div id="dropZone" class="border-2 border-dashed rounded-4 p-5 text-center mb-3"
+                     style="border-color:#22c55e;cursor:pointer;min-height:220px;transition:background .2s"
+                     ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+                    <i class="bi bi-cloud-upload-fill text-success display-4 d-block mb-3"></i>
+                    <p class="fw-semibold mb-1">Kéo thả ảnh vào đây</p>
+                    <p class="text-muted small">hoặc</p>
+                    <label class="btn btn-outline-success rounded-pill px-4">
+                        <i class="bi bi-folder2-open me-2"></i>Chọn ảnh
+                        <input type="file" id="fileInput" accept="image/*" class="d-none" onchange="handleFile(this)" />
+                    </label>
+                    <p class="text-muted small mt-2 mb-0">JPG, PNG, WEBP tối đa 5MB</p>
+                </div>
+
+                <img id="preview" class="img-fluid rounded-4 d-none mb-3" style="max-height:240px;width:100%;object-fit:cover" />
+
+                <button id="analyzeBtn" class="btn btn-warning w-100 py-2 fw-bold rounded-3 d-none" onclick="analyzeImage()">
+                    <i class="bi bi-stars me-2"></i>Phân tích với AI
+                </button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="col-md-7">
+            <!-- Loading -->
+            <div id="loadingCard" class="card border-0 shadow-sm rounded-4 p-5 text-center d-none">
+                <div class="spinner-border text-warning mb-3" style="width:3rem;height:3rem"></div>
+                <h5 class="fw-bold">AI đang phân tích...</h5>
+                <p class="text-muted">Nhận diện món ăn và tính toán dinh dưỡng</p>
+            </div>
+
+            <!-- Result card -->
+            <div id="resultCard" class="d-none">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-3" style="background:linear-gradient(135deg,#fffbeb,#fef9c3)">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-check-circle-fill text-success fs-3 me-3"></i>
+                        <div>
+                            <h5 class="fw-bold mb-0" id="foodName">--</h5>
+                            <small class="text-muted">Độ tin cậy: <span id="confidence" class="fw-semibold text-success">--</span></small>
+                        </div>
+                    </div>
+                    <div class="text-center py-3 bg-white rounded-3 mb-3">
+                        <small class="text-muted d-block">Tổng năng lượng</small>
+                        <span class="display-5 fw-bold text-warning" id="totalCal">--</span>
+                        <span class="text-muted fs-5"> kcal</span>
+                    </div>
+                    <div class="row g-2 text-center">
+                        @foreach (var (id, label, color) in new[] {
+                            ("prot","Protein","danger"), ("carb","Carbohydrate","warning"),
+                            ("fat","Chất béo","info")
+                        })
+                        {
+                            <div class="col-4">
+                                <div class="bg-@color-subtle rounded-3 p-2">
+                                    <div class="fw-bold text-@color fs-5" id="@id">--</div>
+                                    <small class="text-muted">@label</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <!-- Add to meal plan -->
+                <div class="card border-0 shadow-sm rounded-4 p-3">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-calendar-plus me-2 text-success"></i>Thêm vào lịch ăn</h6>
+                    <div class="row g-2">
+                        <div class="col-5">
+                            <select id="addMealType" class="form-select form-select-sm rounded-3">
+                                <option value="Breakfast">🌅 Bữa sáng</option>
+                                <option value="Lunch" selected>☀️ Bữa trưa</option>
+                                <option value="Dinner">🌙 Bữa tối</option>
+                                <option value="Snack">🍎 Snack</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <input type="date" id="addDate" class="form-control form-control-sm rounded-3"
+                                   value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-3">
+                            <button class="btn btn-success btn-sm w-100 rounded-3" onclick="addToMealPlan()">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="addMsg" class="mt-2 d-none"></div>
+                </div>
+            </div>
+
+            <!-- Placeholder -->
+            <div id="placeholder" class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                <i class="bi bi-camera display-4 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Upload ảnh món ăn để bắt đầu</h5>
+                <p class="text-muted small">AI sẽ nhận diện món ăn và tính calories, protein, carb, fat tự động</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let base64Data = null;
+let currentResult = null;
+
+function handleFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Tối đa 5MB'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const dataUrl = e.target.result;
+        base64Data = dataUrl.split(',')[1];
+        document.getElementById('preview').src = dataUrl;
+        document.getElementById('preview').classList.remove('d-none');
+        document.getElementById('analyzeBtn').classList.remove('d-none');
+        document.getElementById('dropZone').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('image/')) {
+        document.getElementById('fileInput').files = e.dataTransfer.files;
+        handleFile(document.getElementById('fileInput'));
+    }
+}
+
+async function analyzeImage() {
+    if (!base64Data) return;
+    document.getElementById('loadingCard').classList.remove('d-none');
+    document.getElementById('resultCard').classList.add('d-none');
+    document.getElementById('placeholder').classList.add('d-none');
+    document.getElementById('analyzeBtn').disabled = true;
+
+    try {
+        const res = await fetch('/Premium/ScanSubmit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(base64Data)
+        });
+        const data = await res.json();
+        currentResult = data;
+
+        document.getElementById('foodName').textContent    = data.foodName ?? 'Không nhận diện được';
+        document.getElementById('confidence').textContent  = data.confidence ? Math.round(data.confidence * 100) + '%' : '--';
+        document.getElementById('totalCal').textContent    = data.calories ?? '--';
+        document.getElementById('prot').textContent        = data.protein ? data.protein.toFixed(1) + 'g' : '--';
+        document.getElementById('carb').textContent        = data.carb    ? data.carb.toFixed(1) + 'g'    : '--';
+        document.getElementById('fat').textContent         = data.fat     ? data.fat.toFixed(1) + 'g'     : '--';
+
+        document.getElementById('loadingCard').classList.add('d-none');
+        document.getElementById('resultCard').classList.remove('d-none');
+    } catch (err) {
+        alert('Lỗi phân tích: ' + err.message);
+        document.getElementById('loadingCard').classList.add('d-none');
+        document.getElementById('placeholder').classList.remove('d-none');
+    }
+    document.getElementById('analyzeBtn').disabled = false;
+}
+
+async function addToMealPlan() {
+    if (!currentResult) return;
+    const mealType = document.getElementById('addMealType').value;
+    const planDate = document.getElementById('addDate').value;
+    const msg = document.getElementById('addMsg');
+
+    const res = await fetch('/MealPlan/Add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            title:    currentResult.foodName ?? 'Món từ ảnh',
+            mealType, planDate,
+            calories: currentResult.calories ?? 0,
+            notes:    'Phân tích bởi AI'
+        })
+    });
+
+    msg.classList.remove('d-none');
+    if (res.ok || res.redirected) {
+        msg.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Đã thêm vào lịch ăn!</span>';
+    } else {
+        msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Lỗi, thử lại!</span>';
+    }
+    setTimeout(() => msg.classList.add('d-none'), 3000);
+}
+</script>
+}

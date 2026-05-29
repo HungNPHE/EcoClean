@@ -1,0 +1,95 @@
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="min-vh-100 d-flex align-items-center" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card border-0 shadow-lg rounded-4 p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-plus-fill text-success display-4"></i>
+                        <h2 class="fw-bold mt-2">Tạo tài khoản</h2>
+                        <p class="text-muted">Bắt đầu hành trình Eat Clean của bạn</p>
+                    </div>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger rounded-3">
+                            <i class="bi bi-exclamation-circle me-2"></i>@ViewBag.Error
+                        </div>
+                    }
+
+                    <form method="post" asp-action="Register">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Họ và tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person text-success"></i></span>
+                                <input type="text" name="fullName" class="form-control" placeholder="Nguyễn Văn A" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-envelope text-success"></i></span>
+                                <input type="email" name="email" class="form-control" placeholder="email@example.com" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-lock text-success"></i></span>
+                                <input type="password" name="password" id="pwInput" class="form-control" placeholder="Tối thiểu 6 ký tự" minlength="6" required />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePw()">
+                                    <i class="bi bi-eye" id="pwEye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-lock-fill text-success"></i></span>
+                                <input type="password" name="confirmPassword" id="cpInput" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                            </div>
+                            <div id="pwMatchMsg" class="form-text"></div>
+                        </div>
+                        <button type="submit" id="submitBtn" class="btn btn-success w-100 py-2 fw-bold rounded-3">
+                            <i class="bi bi-person-check me-2"></i>Đăng ký
+                        </button>
+                    </form>
+
+                    <hr class="my-4" />
+                    <p class="text-center mb-0">
+                        Đã có tài khoản?
+                        <a asp-controller="Account" asp-action="Login" class="text-success fw-semibold">Đăng nhập</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function togglePw() {
+    const i = document.getElementById('pwInput');
+    const e = document.getElementById('pwEye');
+    i.type = i.type === 'password' ? 'text' : 'password';
+    e.className = i.type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+
+document.getElementById('cpInput').addEventListener('input', function () {
+    const pw  = document.getElementById('pwInput').value;
+    const msg = document.getElementById('pwMatchMsg');
+    const btn = document.getElementById('submitBtn');
+    if (this.value && this.value !== pw) {
+        msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Mật khẩu không khớp</span>';
+        btn.disabled = true;
+    } else {
+        msg.innerHTML = this.value ? '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Mật khẩu khớp</span>' : '';
+        btn.disabled = false;
+    }
+});
+</script>
+}

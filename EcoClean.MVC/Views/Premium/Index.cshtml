@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Premium Features";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var isPremium = Context.Request.Cookies["ecoclean_role"] == "Premium";
+}
+
+<div class="container py-4">
+    @if (!isPremium)
+    {
+        <div class="alert alert-warning rounded-4 d-flex align-items-center gap-3 mb-4">
+            <i class="bi bi-lock-fill fs-3 text-warning"></i>
+            <div>
+                <strong>Bạn chưa có Premium!</strong>
+                Nâng cấp để truy cập tất cả tính năng AI.
+                <a asp-action="Payment" class="btn btn-warning btn-sm ms-3 rounded-pill fw-bold">
+                    <i class="bi bi-stars me-1"></i>Nâng cấp ngay
+                </a>
+            </div>
+        </div>
+    }
+
+    <div class="text-center mb-5">
+        <i class="bi bi-stars text-warning display-4 d-block mb-3"></i>
+        <h2 class="fw-bold">Tính năng Premium</h2>
+        <p class="text-muted">AI-powered tools cho hành trình Eat Clean của bạn</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Food Scan -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="p-4 text-center" style="background:linear-gradient(135deg,#fffbeb,#fef9c3)">
+                    <i class="bi bi-camera-fill text-warning display-3 d-block mb-2"></i>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="fw-bold mb-0">Quét ảnh món ăn</h5>
+                        <span class="badge bg-warning text-dark">AI</span>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        Chụp ảnh bất kỳ món ăn — AI sẽ nhận diện và tính toán đầy đủ
+                        calories, protein, carbohydrate và chất béo ngay lập tức.
+                    </p>
+                    <ul class="list-unstyled small text-muted mb-4">
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Nhận diện 1000+ món ăn Việt & quốc tế</li>
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Phân tích macro dinh dưỡng đầy đủ</li>
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Thêm vào lịch ăn 1 click</li>
+                    </ul>
+                    @if (isPremium)
+                    {
+                        <a asp-action="Scan" class="btn btn-warning w-100 rounded-3 fw-bold">
+                            <i class="bi bi-camera me-2"></i>Quét ngay
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-warning w-100 rounded-3" disabled>
+                            <i class="bi bi-lock me-2"></i>Yêu cầu Premium
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Chatbot -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="p-4 text-center" style="background:linear-gradient(135deg,#eff6ff,#dbeafe)">
+                    <i class="bi bi-chat-dots-fill text-primary display-3 d-block mb-2"></i>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="fw-bold mb-0">Chatbot Dinh Dưỡng</h5>
+                        <span class="badge bg-primary">24/7</span>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        Chuyên gia dinh dưỡng AI luôn sẵn sàng tư vấn, giải đáp
+                        mọi câu hỏi về Eat Clean và chế độ ăn uống lành mạnh.
+                    </p>
+                    <ul class="list-unstyled small text-muted mb-4">
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tư vấn chế độ ăn cá nhân hóa</li>
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Gợi ý món ăn theo sở thích</li>
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Lưu lịch sử hội thoại</li>
+                    </ul>
+                    @if (isPremium)
+                    {
+                        <a asp-action="Chat" class="btn btn-primary w-100 rounded-3 fw-bold">
+                            <i class="bi bi-chat-dots me-2"></i>Chat ngay
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-primary w-100 rounded-3" disabled>
+                            <i class="bi bi-lock me-2"></i>Yêu cầu Premium
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Meal Plan -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="p-4 text-center" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
+                    <i class="bi bi-robot text-success display-3 d-block mb-2"></i>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="fw-bold mb-0">Thực đơn AI</h5>
+                        <span class="badge bg-success">Smart</span>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        AI tạo thực đơn Eat Clean 7 ngày hoàn chỉnh, cá nhân hóa
+                        dựa trên BMI, TDEE và mục tiêu sức khỏe của bạn.
+                    </p>
+                    <ul class="list-unstyled small text-muted mb-4">
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Thực đơn 3-14 ngày tuỳ chọn</li>
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tối ưu theo mục tiêu giảm/tăng cân</li>
+                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Món Việt Nam dễ nấu</li>
+                    </ul>
+                    @if (isPremium)
+                    {
+                        <a asp-action="AIPlan" class="btn btn-success w-100 rounded-3 fw-bold">
+                            <i class="bi bi-robot me-2"></i>Tạo thực đơn
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-success w-100 rounded-3" disabled>
+                            <i class="bi bi-lock me-2"></i>Yêu cầu Premium
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!isPremium)
+    {
+        <div class="text-center mt-5">
+            <a asp-action="Payment" class="btn btn-warning btn-lg px-5 py-3 fw-bold rounded-pill shadow">
+                <i class="bi bi-stars me-2"></i>Nâng cấp Premium — từ 99.000đ/tháng
+            </a>
+        </div>
+    }
+</div>

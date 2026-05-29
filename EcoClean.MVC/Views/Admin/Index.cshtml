@@ -1,0 +1,66 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var s = ViewBag.Stats is JsonElement st && st.ValueKind != JsonValueKind.Null ? (JsonElement?)st : null;
+    T Get<T>(string key, T def) {
+        if (s == null || !s.Value.TryGetProperty(key, out var v)) return def;
+        if (typeof(T) == typeof(int))    return (T)(object)v.GetInt32();
+        if (typeof(T) == typeof(decimal)) return (T)(object)v.GetDecimal();
+        return def;
+    }
+}
+
+<div class="row g-3 mb-4">
+    @foreach (var (label, icon, color, val) in new[] {
+        ("Tổng người dùng",  "bi-people-fill",      "primary", Get("totalUsers",    0).ToString()),
+        ("Premium",          "bi-stars",            "warning", Get("premiumUsers",  0).ToString()),
+        ("Mới hôm nay",      "bi-person-plus-fill", "success", Get("newUsersToday", 0).ToString()),
+        ("Gói đang hoạt động","bi-shield-check",    "info",    Get("activePlans",   0).ToString()),
+        ("Lượt quét ảnh",    "bi-camera-fill",      "purple",  Get("totalScans",    0).ToString()),
+        ("Tin nhắn chat",    "bi-chat-dots-fill",   "pink",    Get("totalChats",    0).ToString()),
+    })
+    {
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">@label</div>
+                        <div class="fs-3 fw-bold mt-1">@val</div>
+                    </div>
+                    <div class="rounded-3 p-2 bg-@color bg-opacity-10">
+                        <i class="bi @icon text-@color fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Revenue card -->
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="stat-card card p-4">
+            <div class="text-muted small mb-1">Tổng doanh thu</div>
+            <div class="display-6 fw-bold text-success">
+                @{
+                    var rev = s?.TryGetProperty("revenue", out var rv) == true ? rv.GetDecimal() : 0m;
+                }
+                @rev.ToString("N0") <small class="fs-6 text-muted">₫</small>
+            </div>
+            <small class="text-muted">Từ các gói đã thanh toán</small>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="stat-card card p-4">
+            <h6 class="fw-bold mb-3">Truy cập nhanh</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-action="Users"         class="btn btn-outline-primary btn-sm rounded-pill"><i class="bi bi-people me-1"></i>Quản lý Users</a>
+                <a asp-action="Recipes"       class="btn btn-outline-success btn-sm rounded-pill"><i class="bi bi-journal-richtext me-1"></i>Quản lý Recipes</a>
+                <a asp-action="Subscriptions" class="btn btn-outline-warning btn-sm rounded-pill"><i class="bi bi-credit-card me-1"></i>Thanh toán</a>
+                <a asp-action="Subscriptions" asp-route-status="Pending"
+                   class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-clock me-1"></i>Chờ xác nhận</a>
+            </div>
+        </div>
+    </div>
+</div>
