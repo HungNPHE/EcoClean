@@ -3,116 +3,262 @@
 @{
     ViewData["Title"] = Model.TryGetProperty("name", out var n) ? n.GetString() : "Chi tiết";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var name    = Model.TryGetProperty("name",        out var nm)  ? nm.GetString()  : "";
-    var desc    = Model.TryGetProperty("description", out var d)   ? d.GetString()   : "";
-    var cal     = Model.TryGetProperty("calories",    out var c)   ? c.GetInt32()    : 0;
-    var protein = Model.TryGetProperty("protein",     out var pr)  ? pr.GetDouble()  : 0;
-    var carb    = Model.TryGetProperty("carb",        out var cb)  ? cb.GetDouble()  : 0;
-    var fat     = Model.TryGetProperty("fat",         out var ft)  ? ft.GetDouble()  : 0;
-    var fiber   = Model.TryGetProperty("fiber",       out var fb)  ? fb.GetDouble()  : 0;
-    var cat     = Model.TryGetProperty("category",    out var ct)  ? ct.GetString()  : "";
-    var prep    = Model.TryGetProperty("prepTimeMin", out var pt) && pt.ValueKind != JsonValueKind.Null ? (int?)pt.GetInt32() : null;
-    var id      = Model.TryGetProperty("id",          out var i)   ? i.GetInt32()    : 0;
+    var name    = Model.TryGetProperty("name",         out var nm)  ? nm.GetString()  : "";
+    var desc    = Model.TryGetProperty("description",  out var d)   ? d.GetString()   : "";
+    var cal     = Model.TryGetProperty("calories",     out var c)   ? c.GetInt32()    : 0;
+    var protein = Model.TryGetProperty("protein",      out var pr)  ? pr.GetDouble()  : 0;
+    var carb    = Model.TryGetProperty("carb",         out var cb)  ? cb.GetDouble()  : 0;
+    var fat     = Model.TryGetProperty("fat",          out var ft)  ? ft.GetDouble()  : 0;
+    var fiber   = Model.TryGetProperty("fiber",        out var fb)  ? fb.GetDouble()  : 0;
+    var cat     = Model.TryGetProperty("category",     out var ct)  ? ct.GetString()  : "";
+    var prep    = Model.TryGetProperty("prepTimeMin",  out var pt) && pt.ValueKind != JsonValueKind.Null ? (int?)pt.GetInt32() : null;
+    var id      = Model.TryGetProperty("id",           out var iv)  ? iv.GetInt32()   : 0;
+    var imgUrl  = Model.TryGetProperty("imageUrl",     out var iu) && iu.ValueKind != JsonValueKind.Null ? iu.GetString() : null;
+    var ingJson = Model.TryGetProperty("ingredients",  out var ig) && ig.ValueKind == JsonValueKind.String ? ig.GetString() : null;
+    var insJson = Model.TryGetProperty("instructions", out var ins) && ins.ValueKind == JsonValueKind.String ? ins.GetString() : null;
+
+    var catColor = new Dictionary<string,string> {
+        ["Breakfast"]="#f59e0b",["Lunch"]="#22c55e",
+        ["Dinner"]="#8b5cf6",["Snack"]="#ef4444",["Drink"]="#0ea5e9"
+    };
+    var catVi = new Dictionary<string,string> {
+        ["Breakfast"]="Bữa sáng",["Lunch"]="Bữa trưa",
+        ["Dinner"]="Bữa tối",["Snack"]="Snack",["Drink"]="Đồ uống"
+    };
+    var accent = catColor.GetValueOrDefault(cat ?? "", "#16a34a");
+
+    List<string> ingredients = new();
+    List<string> instructions = new();
+    try { if (!string.IsNullOrEmpty(ingJson)) ingredients = JsonSerializer.Deserialize<List<string>>(ingJson) ?? new(); } catch { }
+    try { if (!string.IsNullOrEmpty(insJson)) instructions = JsonSerializer.Deserialize<List<string>>(insJson) ?? new(); } catch { }
 }
 
 <div class="container py-4">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Recipe" asp-action="Index" class="text-success">Công thức</a></li>
-            <li class="breadcrumb-item active">@name</li>
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb" style="font-size:.85rem">
+            <li class="breadcrumb-item">
+                <a asp-controller="Recipe" asp-action="Index" class="text-decoration-none" style="color:#16a34a">
+                    <i class="bi bi-book me-1"></i>Công thức
+                </a>
+            </li>
+            <li class="breadcrumb-item text-muted">@catVi.GetValueOrDefault(cat??"",cat??"")</li>
+            <li class="breadcrumb-item active text-muted">@name</li>
         </ol>
     </nav>
 
-    <div class="row g-4">
+    <!-- TOP SECTION: Ảnh + Info -->
+    <div class="row g-4 mb-5">
+
+        <!-- Ảnh -->
         <div class="col-md-5">
-            <div class="card border-0 rounded-4 shadow-sm overflow-hidden" style="min-height:300px;background:linear-gradient(135deg,#f0fdf4,#bbf7d0)">
-                <div class="d-flex align-items-center justify-content-center h-100 py-5">
-                    <i class="bi bi-bowl-hot text-success" style="font-size:8rem;opacity:.4"></i>
+            @if (!string.IsNullOrEmpty(imgUrl))
+            {
+                <img src="@imgUrl" alt="@name"
+                     class="w-100 shadow"
+                     style="height:380px;object-fit:cover;border-radius:20px;display:block"
+                     onerror="this.replaceWith(document.getElementById('imgFallback').content.cloneNode(true))" />
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center shadow"
+                     style="height:380px;border-radius:20px;background:linear-gradient(135deg,#f0fdf4,#bbf7d0)">
+                    <i class="bi bi-bowl-hot" style="font-size:7rem;color:@accent;opacity:.4"></i>
                 </div>
-                <div class="position-absolute top-0 start-0 m-3">
-                    <span class="badge bg-success px-3 py-2 rounded-pill fs-6">@cat</span>
+            }
+            <template id="imgFallback">
+                <div class="d-flex align-items-center justify-content-center shadow"
+                     style="height:380px;border-radius:20px;background:linear-gradient(135deg,#f0fdf4,#bbf7d0)">
+                    <i class="bi bi-bowl-hot" style="font-size:7rem;color:@accent;opacity:.4"></i>
                 </div>
-                @if (prep.HasValue)
-                {
-                    <div class="position-absolute top-0 end-0 m-3">
-                        <span class="badge bg-white text-dark px-3 py-2 rounded-pill">
-                            <i class="bi bi-clock me-1"></i>@prep phút
-                        </span>
-                    </div>
-                }
-            </div>
+            </template>
         </div>
 
-        <div class="col-md-7">
-            <h2 class="fw-bold mb-2">@name</h2>
+        <!-- Info -->
+        <div class="col-md-7 d-flex flex-column justify-content-center">
+
+            <!-- Category + time badges -->
+            <div class="d-flex gap-2 flex-wrap mb-3">
+                <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                      style="background:@accent;color:white;font-size:.82rem">
+                    @catVi.GetValueOrDefault(cat??"",cat??"")
+                </span>
+                @if (prep.HasValue)
+                {
+                    <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                          style="background:#f1f5f9;color:#475569;font-size:.82rem">
+                        <i class="bi bi-clock me-1"></i>@prep phút
+                    </span>
+                }
+                @if (ingredients.Any())
+                {
+                    <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                          style="background:#f1f5f9;color:#475569;font-size:.82rem">
+                        <i class="bi bi-basket2 me-1"></i>@ingredients.Count nguyên liệu
+                    </span>
+                }
+            </div>
+
+            <h1 class="fw-bold mb-2" style="font-size:2rem;letter-spacing:-0.03em">@name</h1>
+
             @if (!string.IsNullOrEmpty(desc))
             {
-                <p class="text-muted mb-4">@desc</p>
+                <p class="text-muted mb-4" style="font-size:1rem;line-height:1.75">@desc</p>
             }
 
             <!-- Calories -->
-            <div class="card border-0 rounded-4 mb-4 text-center p-3"
-                 style="background:linear-gradient(135deg,#ecfdf5,#d1fae5)">
-                <small class="text-muted">Tổng năng lượng</small>
-                <div class="display-5 fw-bold text-success">@cal <small class="fs-5">kcal</small></div>
+            <div class="d-inline-flex align-items-center gap-3 px-4 py-3 rounded-3 mb-4"
+                 style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);max-width:fit-content">
+                <i class="bi bi-fire" style="font-size:1.8rem;color:#16a34a"></i>
+                <div>
+                    <div style="font-size:.78rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Năng lượng</div>
+                    <div style="font-size:2rem;font-weight:800;color:#16a34a;line-height:1;letter-spacing:-0.04em">
+                        @cal <span style="font-size:1rem;font-weight:500;color:#64748b">kcal</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Macros -->
-            <h5 class="fw-bold mb-3">Giá trị dinh dưỡng</h5>
-            <div class="row g-3 mb-4">
-                @foreach (var (label, val, unit, color, icon) in new[] {
-                    ("Protein", protein, "g", "danger",  "bi-droplet-fill"),
-                    ("Carbohydrate", carb, "g","warning", "bi-grid-fill"),
-                    ("Chất béo", fat, "g",    "info",    "bi-water"),
-                    ("Chất xơ",  fiber,"g",   "success", "bi-flower1")
+            <!-- Macro grid -->
+            <div class="row g-3">
+                @foreach (var (label, val, color, icon) in new[] {
+                    ("Protein",      protein, "#ef4444", "bi-droplet-fill"),
+                    ("Carbohydrate", carb,    "#f59e0b", "bi-grid-fill"),
+                    ("Chất béo",     fat,     "#0ea5e9", "bi-water"),
+                    ("Chất xơ",      fiber,   "#22c55e", "bi-flower1"),
                 })
                 {
                     var pct = cal > 0 ? (int)Math.Min(100, val * (label == "Chất béo" ? 9 : 4) * 100 / cal) : 0;
                     <div class="col-6">
-                        <div class="card border-0 bg-@color-subtle rounded-4 p-3 h-100">
+                        <div class="p-3 rounded-3 h-100" style="background:#f8fafc;border:1px solid #f1f5f9">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted"><i class="bi @icon me-1"></i>@label</small>
-                                <span class="fw-bold text-@color">@val.ToString("0.0")@unit</span>
+                                <span style="font-size:.78rem;font-weight:600;color:#64748b">
+                                    <i class="bi @icon me-1" style="color:@color"></i>@label
+                                </span>
+                                <span class="fw-bold" style="color:@color;font-size:.9rem">@val.ToString("0.0")g</span>
                             </div>
-                            <div class="progress rounded-pill" style="height:6px">
-                                <div class="progress-bar bg-@color rounded-pill" style="width:@pct%"></div>
+                            <div class="rounded-pill" style="height:6px;background:#e2e8f0;overflow:hidden">
+                                <div class="rounded-pill" style="width:@pct%;height:100%;background:@color"></div>
                             </div>
                         </div>
                     </div>
                 }
             </div>
+        </div>
+    </div>
 
-            <!-- Add to Meal Plan -->
+    <!-- BOTTOM SECTION: Nguyên liệu + Cách làm + Thêm vào lịch -->
+    <div class="row g-4">
+
+        <!-- Nguyên liệu -->
+        @if (ingredients.Any())
+        {
+            <div class="col-lg-4">
+                <div class="card border-0 h-100" style="border-radius:20px;box-shadow:0 2px 16px rgba(0,0,0,.06)">
+                    <div class="card-header border-0 px-4 pt-4 pb-3"
+                         style="background:transparent">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-basket2-fill me-2" style="color:#16a34a"></i>Nguyên liệu
+                            <span class="badge rounded-pill ms-1 fw-normal"
+                                  style="background:#f0fdf4;color:#16a34a;font-size:.72rem">@ingredients.Count</span>
+                        </h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-0">
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var ing in ingredients)
+                            {
+                                <li class="d-flex align-items-start gap-3 py-2"
+                                    style="border-bottom:1px solid #f1f5f9">
+                                    <div class="flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center mt-1"
+                                         style="width:22px;height:22px;min-width:22px;background:#dcfce7">
+                                        <i class="bi bi-check" style="font-size:.7rem;color:#16a34a;font-weight:800"></i>
+                                    </div>
+                                    <span style="font-size:.9rem;color:#374151;line-height:1.5">@ing</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Cách làm -->
+        @if (instructions.Any())
+        {
+            <div class="@(ingredients.Any() ? "col-lg-5" : "col-lg-8")">
+                <div class="card border-0 h-100" style="border-radius:20px;box-shadow:0 2px 16px rgba(0,0,0,.06)">
+                    <div class="card-header border-0 px-4 pt-4 pb-3" style="background:transparent">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-list-ol me-2" style="color:#0ea5e9"></i>Cách làm
+                            <span class="badge rounded-pill ms-1 fw-normal"
+                                  style="background:#f0f9ff;color:#0ea5e9;font-size:.72rem">@instructions.Count bước</span>
+                        </h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-0">
+                        @{ int step = 1; }
+                        @foreach (var stepText in instructions)
+                        {
+                            <div class="d-flex gap-3 @(step < instructions.Count ? "mb-3 pb-3" : "")"
+                                 style="@(step < instructions.Count ? "border-bottom:1px solid #f1f5f9" : "")">
+                                <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle fw-bold"
+                                     style="width:32px;height:32px;min-width:32px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:white;font-size:.85rem">
+                                    @step
+                                </div>
+                                <p class="mb-0 pt-1" style="font-size:.9rem;color:#374151;line-height:1.7">@stepText</p>
+                            </div>
+                            step++;
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Thêm vào lịch ăn -->
+        <div class="col-lg-3">
             @if (Context.Request.Cookies.ContainsKey("ecoclean_token"))
             {
-                <div class="card border-0 shadow-sm rounded-4 p-3">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-calendar-plus me-2 text-success"></i>Thêm vào lịch ăn</h6>
-                    <form method="post" asp-controller="MealPlan" asp-action="Add">
-                        <input type="hidden" name="title"    value="@name" />
-                        <input type="hidden" name="recipeId" value="@id" />
-                        <input type="hidden" name="calories" value="@cal" />
-                        <div class="row g-2">
-                            <div class="col-5">
-                                <select name="mealType" class="form-select form-select-sm rounded-3">
+                <div class="card border-0" style="border-radius:20px;box-shadow:0 2px 16px rgba(0,0,0,.06)">
+                    <div class="card-header border-0 px-4 pt-4 pb-3" style="background:transparent">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-calendar-plus me-2" style="color:#16a34a"></i>Thêm vào lịch
+                        </h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-0">
+                        <form method="post" asp-controller="MealPlan" asp-action="Add">
+                            <input type="hidden" name="title"    value="@name" />
+                            <input type="hidden" name="recipeId" value="@id" />
+                            <input type="hidden" name="calories" value="@cal" />
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold text-muted">Bữa ăn</label>
+                                <select name="mealType" class="form-select form-select-sm">
                                     <option value="Breakfast">🌅 Bữa sáng</option>
                                     <option value="Lunch" selected>☀️ Bữa trưa</option>
                                     <option value="Dinner">🌙 Bữa tối</option>
                                     <option value="Snack">🍎 Snack</option>
                                 </select>
                             </div>
-                            <div class="col-4">
-                                <input type="date" name="planDate" class="form-control form-control-sm rounded-3"
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">Ngày</label>
+                                <input type="date" name="planDate" class="form-control form-control-sm"
                                        value="@DateTime.Today.ToString("yyyy-MM-dd")" />
                             </div>
-                            <div class="col-3">
-                                <button type="submit" class="btn btn-success btn-sm w-100 rounded-3">
-                                    <i class="bi bi-plus-lg"></i> Thêm
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                            <button type="submit" class="btn btn-eco w-100 rounded-pill fw-semibold">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm vào lịch
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card border-0 text-center p-4" style="border-radius:20px;background:#f8fafc">
+                    <i class="bi bi-calendar-plus display-5 mb-3" style="color:#cbd5e1"></i>
+                    <p class="text-muted small mb-3">Đăng nhập để thêm vào lịch ăn</p>
+                    <a asp-controller="Account" asp-action="Login"
+                       class="btn btn-eco rounded-pill fw-semibold w-100">Đăng nhập</a>
                 </div>
             }
         </div>
+
     </div>
 </div>

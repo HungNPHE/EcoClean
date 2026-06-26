@@ -26,7 +26,8 @@ public class JwtHelper
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.FullName),
             new Claim(ClaimTypes.Role, user.Role),
-            new Claim("IsPremium", user.IsPremium.ToString())
+            new Claim("IsPremium", user.IsPremium.ToString()),
+            new Claim("FreeTrialUsed", user.FreeTrialUsed.ToString())
         };
 
         var token = new JwtSecurityToken(

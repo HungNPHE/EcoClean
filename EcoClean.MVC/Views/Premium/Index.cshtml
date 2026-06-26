@@ -1,62 +1,152 @@
 @{
     ViewData["Title"] = "Premium Features";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var isPremium = Context.Request.Cookies["ecoclean_role"] == "Premium";
+    var role       = Context.Request.Cookies["ecoclean_role"] ?? "";
+    var isPremium  = role == "Premium" || role == "Admin";
+    var isLoggedIn = Context.Request.Cookies.ContainsKey("ecoclean_token");
+
+    // Đọc FreeTrialUsed từ JWT cookie (decode phần payload)
+    int freeTrialUsed = 0;
+    const int freeTrialLimit = 10;
+    try {
+        var token = Context.Request.Cookies["ecoclean_token"];
+        if (!string.IsNullOrEmpty(token)) {
+            var parts = token.Split('.');
+            if (parts.Length == 3) {
+                var pad = (4 - parts[1].Length % 4) % 4;
+                var b64 = parts[1].Replace('-','+').Replace('_','/') + new string('=', pad);
+                var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(b64));
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("FreeTrialUsed", out var ft))
+                    freeTrialUsed = ft.GetInt32();
+            }
+        }
+    } catch { }
+
+    var freeTrialLeft = Math.Max(0, freeTrialLimit - freeTrialUsed);
+    var canUseFree    = !isPremium && freeTrialLeft > 0;
+    var canUse        = isPremium || canUseFree;
 }
 
-<div class="container py-4">
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#78350f,#92400e,#b45309);padding:4rem 0">
+    <div class="container text-center">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
+             style="width:60px;height:60px;background:rgba(255,255,255,.15)">
+            <i class="bi bi-stars text-white" style="font-size:1.75rem"></i>
+        </div>
+        <h1 class="fw-bold text-white mb-2" style="letter-spacing:-0.03em">Tính năng Premium</h1>
+        <p class="text-white mb-0" style="opacity:.75">AI-powered tools cho hành trình Eat Clean của bạn</p>
+    </div>
+</div>
+
+<div class="container py-5">
     @if (!isPremium)
     {
-        <div class="alert alert-warning rounded-4 d-flex align-items-center gap-3 mb-4">
-            <i class="bi bi-lock-fill fs-3 text-warning"></i>
-            <div>
-                <strong>Bạn chưa có Premium!</strong>
-                Nâng cấp để truy cập tất cả tính năng AI.
-                <a asp-action="Payment" class="btn btn-warning btn-sm ms-3 rounded-pill fw-bold">
+        <div class="card border-0 mb-5 p-4 d-flex flex-row align-items-center gap-3"
+             style="background:linear-gradient(135deg,#fffbeb,#fef9c3);border-radius:16px !important;border:1.5px solid rgba(245,158,11,.3) !important">
+            <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:48px;height:48px;background:rgba(245,158,11,.2);color:#d97706;font-size:1.3rem">
+                <i class="bi @(canUseFree ? "bi-gift-fill" : "bi-lock-fill")"></i>
+            </div>
+            <div class="flex-grow-1">
+                @if (!isLoggedIn)
+                {
+                    <div class="fw-bold mb-1">Bạn chưa đăng nhập!</div>
+                    <div class="text-muted small">Đăng nhập để nhận <strong>10 lượt dùng thử miễn phí</strong> các tính năng AI.</div>
+                }
+                else if (canUseFree)
+                {
+                    <div class="fw-bold mb-1">
+                        Bạn đang dùng thử miễn phí
+                        <span class="badge rounded-pill ms-1" style="background:#d97706;color:white;font-size:.78rem">
+                            Còn @freeTrialLeft / @freeTrialLimit lượt
+                        </span>
+                    </div>
+                    <div class="text-muted small">Dùng hết @freeTrialLeft lượt thì cần nâng cấp Premium để tiếp tục.</div>
+                    <!-- Progress bar -->
+                    <div class="mt-2 rounded-pill overflow-hidden" style="height:6px;background:rgba(0,0,0,.1);max-width:300px">
+                        <div class="rounded-pill" style="height:100%;width:@(freeTrialUsed * 100 / freeTrialLimit)%;background:linear-gradient(90deg,#22c55e,#f59e0b)"></div>
+                    </div>
+                }
+                else
+                {
+                    <div class="fw-bold mb-1">Đã hết lượt dùng thử!</div>
+                    <div class="text-muted small">Bạn đã dùng hết 10 lượt miễn phí. Nâng cấp để tiếp tục trải nghiệm.</div>
+                }
+            </div>
+            @if (!isLoggedIn)
+            {
+                <a asp-controller="Account" asp-action="Login"
+                   class="btn btn-premium rounded-pill fw-bold flex-shrink-0">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                </a>
+            }
+            else
+            {
+                <a asp-action="Payment"
+                   class="btn btn-premium rounded-pill fw-bold flex-shrink-0">
                     <i class="bi bi-stars me-1"></i>Nâng cấp ngay
                 </a>
-            </div>
+            }
         </div>
     }
-
-    <div class="text-center mb-5">
-        <i class="bi bi-stars text-warning display-4 d-block mb-3"></i>
-        <h2 class="fw-bold">Tính năng Premium</h2>
-        <p class="text-muted">AI-powered tools cho hành trình Eat Clean của bạn</p>
-    </div>
 
     <div class="row g-4">
         <!-- Food Scan -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="card border-0 h-100 overflow-hidden" style="border-radius:20px !important">
                 <div class="p-4 text-center" style="background:linear-gradient(135deg,#fffbeb,#fef9c3)">
-                    <i class="bi bi-camera-fill text-warning display-3 d-block mb-2"></i>
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-2"
+                         style="width:64px;height:64px;background:rgba(245,158,11,.2)">
+                        <i class="bi bi-camera-fill text-warning" style="font-size:2rem"></i>
+                    </div>
                 </div>
-                <div class="p-4">
+                <div class="p-4 flex-grow-1 d-flex flex-column">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <h5 class="fw-bold mb-0">Quét ảnh món ăn</h5>
-                        <span class="badge bg-warning text-dark">AI</span>
+                        <span class="badge rounded-pill px-2"
+                              style="background:rgba(245,158,11,.15);color:#d97706;font-size:.72rem">AI</span>
                     </div>
-                    <p class="text-muted small mb-3">
+                    <p class="text-muted small mb-3" style="line-height:1.7">
                         Chụp ảnh bất kỳ món ăn — AI sẽ nhận diện và tính toán đầy đủ
                         calories, protein, carbohydrate và chất béo ngay lập tức.
                     </p>
-                    <ul class="list-unstyled small text-muted mb-4">
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Nhận diện 1000+ món ăn Việt & quốc tế</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Phân tích macro dinh dưỡng đầy đủ</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Thêm vào lịch ăn 1 click</li>
+                    <ul class="list-unstyled small text-muted mb-4 flex-grow-1">
+                        @foreach (var item in new[] { "Nhận diện 1000+ món ăn Việt & quốc tế", "Phân tích macro dinh dưỡng đầy đủ", "Thêm vào lịch ăn 1 click" })
+                        {
+                            <li class="d-flex align-items-center gap-2 py-1">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size:.8rem"></i>@item
+                            </li>
+                        }
                     </ul>
                     @if (isPremium)
                     {
-                        <a asp-action="Scan" class="btn btn-warning w-100 rounded-3 fw-bold">
+                        <a asp-action="Scan" class="btn btn-premium w-100 rounded-pill fw-bold">
                             <i class="bi bi-camera me-2"></i>Quét ngay
+                        </a>
+                    }
+                    else if (canUseFree)
+                    {
+                        <a asp-action="Scan" class="btn w-100 rounded-pill fw-bold"
+                           style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none">
+                            <i class="bi bi-gift me-2"></i>Dùng thử (@freeTrialLeft lượt còn lại)
+                        </a>
+                    }
+                    else if (!isLoggedIn)
+                    {
+                        <a asp-controller="Account" asp-action="Login"
+                           class="btn w-100 rounded-pill fw-semibold"
+                           style="background:rgba(245,158,11,.1);color:#d97706;border:1.5px solid rgba(245,158,11,.2)">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập để dùng thử
                         </a>
                     }
                     else
                     {
-                        <button class="btn btn-outline-warning w-100 rounded-3" disabled>
-                            <i class="bi bi-lock me-2"></i>Yêu cầu Premium
-                        </button>
+                        <a asp-action="Payment" class="btn w-100 rounded-pill fw-semibold"
+                           style="background:rgba(245,158,11,.1);color:#d97706;border:1.5px solid rgba(245,158,11,.2)">
+                            <i class="bi bi-stars me-2"></i>Nâng cấp Premium
+                        </a>
                     }
                 </div>
             </div>
@@ -64,35 +154,58 @@
 
         <!-- Chatbot -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="card border-0 h-100 overflow-hidden" style="border-radius:20px !important">
                 <div class="p-4 text-center" style="background:linear-gradient(135deg,#eff6ff,#dbeafe)">
-                    <i class="bi bi-chat-dots-fill text-primary display-3 d-block mb-2"></i>
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-2"
+                         style="width:64px;height:64px;background:rgba(59,130,246,.15)">
+                        <i class="bi bi-chat-dots-fill text-primary" style="font-size:2rem"></i>
+                    </div>
                 </div>
-                <div class="p-4">
+                <div class="p-4 flex-grow-1 d-flex flex-column">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <h5 class="fw-bold mb-0">Chatbot Dinh Dưỡng</h5>
-                        <span class="badge bg-primary">24/7</span>
+                        <span class="badge rounded-pill px-2"
+                              style="background:rgba(59,130,246,.12);color:#3b82f6;font-size:.72rem">24/7</span>
                     </div>
-                    <p class="text-muted small mb-3">
+                    <p class="text-muted small mb-3" style="line-height:1.7">
                         Chuyên gia dinh dưỡng AI luôn sẵn sàng tư vấn, giải đáp
                         mọi câu hỏi về Eat Clean và chế độ ăn uống lành mạnh.
                     </p>
-                    <ul class="list-unstyled small text-muted mb-4">
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tư vấn chế độ ăn cá nhân hóa</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Gợi ý món ăn theo sở thích</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Lưu lịch sử hội thoại</li>
+                    <ul class="list-unstyled small text-muted mb-4 flex-grow-1">
+                        @foreach (var item in new[] { "Tư vấn chế độ ăn cá nhân hóa", "Gợi ý món ăn theo sở thích", "Lưu lịch sử hội thoại" })
+                        {
+                            <li class="d-flex align-items-center gap-2 py-1">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size:.8rem"></i>@item
+                            </li>
+                        }
                     </ul>
                     @if (isPremium)
                     {
-                        <a asp-action="Chat" class="btn btn-primary w-100 rounded-3 fw-bold">
+                        <a asp-action="Chat" class="btn btn-primary w-100 rounded-pill fw-bold">
                             <i class="bi bi-chat-dots me-2"></i>Chat ngay
+                        </a>
+                    }
+                    else if (canUseFree)
+                    {
+                        <a asp-action="Chat" class="btn w-100 rounded-pill fw-bold"
+                           style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none">
+                            <i class="bi bi-gift me-2"></i>Dùng thử (@freeTrialLeft lượt còn lại)
+                        </a>
+                    }
+                    else if (!isLoggedIn)
+                    {
+                        <a asp-controller="Account" asp-action="Login"
+                           class="btn w-100 rounded-pill fw-semibold"
+                           style="background:rgba(59,130,246,.1);color:#3b82f6;border:1.5px solid rgba(59,130,246,.2)">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập để dùng thử
                         </a>
                     }
                     else
                     {
-                        <button class="btn btn-outline-primary w-100 rounded-3" disabled>
-                            <i class="bi bi-lock me-2"></i>Yêu cầu Premium
-                        </button>
+                        <a asp-action="Payment" class="btn w-100 rounded-pill fw-semibold"
+                           style="background:rgba(59,130,246,.1);color:#3b82f6;border:1.5px solid rgba(59,130,246,.2)">
+                            <i class="bi bi-stars me-2"></i>Nâng cấp Premium
+                        </a>
                     }
                 </div>
             </div>
@@ -100,35 +213,57 @@
 
         <!-- AI Meal Plan -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="card border-0 h-100 overflow-hidden" style="border-radius:20px !important">
                 <div class="p-4 text-center" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
-                    <i class="bi bi-robot text-success display-3 d-block mb-2"></i>
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-2"
+                         style="width:64px;height:64px;background:rgba(22,163,74,.15)">
+                        <i class="bi bi-robot text-success" style="font-size:2rem"></i>
+                    </div>
                 </div>
-                <div class="p-4">
+                <div class="p-4 flex-grow-1 d-flex flex-column">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <h5 class="fw-bold mb-0">Thực đơn AI</h5>
-                        <span class="badge bg-success">Smart</span>
+                        <span class="badge rounded-pill px-2"
+                              style="background:rgba(22,163,74,.1);color:#16a34a;font-size:.72rem">Smart</span>
                     </div>
-                    <p class="text-muted small mb-3">
+                    <p class="text-muted small mb-3" style="line-height:1.7">
                         AI tạo thực đơn Eat Clean 7 ngày hoàn chỉnh, cá nhân hóa
                         dựa trên BMI, TDEE và mục tiêu sức khỏe của bạn.
                     </p>
-                    <ul class="list-unstyled small text-muted mb-4">
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Thực đơn 3-14 ngày tuỳ chọn</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tối ưu theo mục tiêu giảm/tăng cân</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Món Việt Nam dễ nấu</li>
+                    <ul class="list-unstyled small text-muted mb-4 flex-grow-1">
+                        @foreach (var item in new[] { "Thực đơn 3-14 ngày tuỳ chọn", "Tối ưu theo mục tiêu giảm/tăng cân", "Món Việt Nam dễ nấu" })
+                        {
+                            <li class="d-flex align-items-center gap-2 py-1">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size:.8rem"></i>@item
+                            </li>
+                        }
                     </ul>
                     @if (isPremium)
                     {
-                        <a asp-action="AIPlan" class="btn btn-success w-100 rounded-3 fw-bold">
+                        <a asp-action="AIPlan" class="btn btn-eco w-100 rounded-pill fw-bold">
                             <i class="bi bi-robot me-2"></i>Tạo thực đơn
+                        </a>
+                    }
+                    else if (canUseFree)
+                    {
+                        <a asp-action="AIPlan" class="btn btn-eco w-100 rounded-pill fw-bold">
+                            <i class="bi bi-gift me-2"></i>Dùng thử (@freeTrialLeft lượt còn lại)
+                        </a>
+                    }
+                    else if (!isLoggedIn)
+                    {
+                        <a asp-controller="Account" asp-action="Login"
+                           class="btn w-100 rounded-pill fw-semibold"
+                           style="background:rgba(22,163,74,.1);color:#16a34a;border:1.5px solid rgba(22,163,74,.2)">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập để dùng thử
                         </a>
                     }
                     else
                     {
-                        <button class="btn btn-outline-success w-100 rounded-3" disabled>
-                            <i class="bi bi-lock me-2"></i>Yêu cầu Premium
-                        </button>
+                        <a asp-action="Payment" class="btn w-100 rounded-pill fw-semibold"
+                           style="background:rgba(22,163,74,.1);color:#16a34a;border:1.5px solid rgba(22,163,74,.2)">
+                            <i class="bi bi-stars me-2"></i>Nâng cấp Premium
+                        </a>
                     }
                 </div>
             </div>
@@ -138,8 +273,9 @@
     @if (!isPremium)
     {
         <div class="text-center mt-5">
-            <a asp-action="Payment" class="btn btn-warning btn-lg px-5 py-3 fw-bold rounded-pill shadow">
-                <i class="bi bi-stars me-2"></i>Nâng cấp Premium — từ 99.000đ/tháng
+            <a asp-action="Payment"
+               class="btn btn-premium btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg">
+                <i class="bi bi-stars me-2"></i>Nâng cấp Premium — từ 49.000đ/tháng
             </a>
         </div>
     }

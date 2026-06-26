@@ -3,6 +3,12 @@ using System.Text.Json;
 
 namespace EcoClean.MVC.Services;
 
+public class ApiException : Exception
+{
+    public int StatusCode { get; }
+    public ApiException(int statusCode, string message) : base(message) => StatusCode = statusCode;
+}
+
 public class ApiClient
 {
     private readonly HttpClient _http;
@@ -30,6 +36,22 @@ public class ApiClient
         return req;
     }
 
+    // Trích message từ body lỗi JSON { "message": "..." } hoặc { "error": "..." }
+    private string ExtractErrorMessage(string body, int statusCode)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("message", out var msg) && msg.GetString() is { } m && !string.IsNullOrEmpty(m))
+                return m;
+            if (root.TryGetProperty("error", out var err) && err.GetString() is { } e && !string.IsNullOrEmpty(e))
+                return e;
+        }
+        catch { /* body không phải JSON */ }
+        return $"Lỗi server ({statusCode})";
+    }
+
     public async Task<T?> GetAsync<T>(string path)
     {
         try
@@ -55,51 +77,35 @@ public class ApiClient
 
     public async Task<T?> PostAsync<T>(string path, object body)
     {
-        try
-        {
-            var json    = JsonSerializer.Serialize(body, _jsonOpts);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-            var req     = BuildRequest(HttpMethod.Post, path, content);
-            var res     = await _http.SendAsync(req);
-            var resBody = await res.Content.ReadAsStringAsync();
+        var json    = JsonSerializer.Serialize(body, _jsonOpts);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        var req     = BuildRequest(HttpMethod.Post, path, content);
+        var res     = await _http.SendAsync(req);
+        var resBody = await res.Content.ReadAsStringAsync();
 
-            if (!res.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("POST {Path} => {Status}: {Body}", path, (int)res.StatusCode, resBody);
-                return default;
-            }
-
-            return JsonSerializer.Deserialize<T>(resBody, _jsonOpts);
-        }
-        catch (Exception ex)
+        if (!res.IsSuccessStatusCode)
         {
-            _logger.LogError(ex, "POST {Path} failed", path);
-            return default;
+            _logger.LogWarning("POST {Path} => {Status}: {Body}", path, (int)res.StatusCode, resBody);
+            throw new ApiException((int)res.StatusCode, ExtractErrorMessage(resBody, (int)res.StatusCode));
         }
+
+        return JsonSerializer.Deserialize<T>(resBody, _jsonOpts);
     }
 
     public async Task<T?> PostRawAsync<T>(string path, string jsonBody)
     {
-        try
-        {
-            var content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
-            var req     = BuildRequest(HttpMethod.Post, path, content);
-            var res     = await _http.SendAsync(req);
-            var resBody = await res.Content.ReadAsStringAsync();
+        var content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
+        var req     = BuildRequest(HttpMethod.Post, path, content);
+        var res     = await _http.SendAsync(req);
+        var resBody = await res.Content.ReadAsStringAsync();
 
-            if (!res.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("POST(raw) {Path} => {Status}: {Body}", path, (int)res.StatusCode, resBody);
-                return default;
-            }
-
-            return JsonSerializer.Deserialize<T>(resBody, _jsonOpts);
-        }
-        catch (Exception ex)
+        if (!res.IsSuccessStatusCode)
         {
-            _logger.LogError(ex, "POST(raw) {Path} failed", path);
-            return default;
+            _logger.LogWarning("POST(raw) {Path} => {Status}: {Body}", path, (int)res.StatusCode, resBody);
+            throw new ApiException((int)res.StatusCode, ExtractErrorMessage(resBody, (int)res.StatusCode));
         }
+
+        return JsonSerializer.Deserialize<T>(resBody, _jsonOpts);
     }
 
     public async Task<bool> DeleteAsync(string path)

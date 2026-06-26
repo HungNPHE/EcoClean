@@ -89,13 +89,20 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateRecipe(string name, string? description, int calories,
         double protein, double carb, double fat, double fiber,
-        string category, int? prepTimeMin, string? tags, string? imageUrl)
+        string category, int? prepTimeMin, string? tags, string? imageUrl,
+        string? ingredients, string? instructions)
     {
         var guard = RequireAdmin(); if (guard != null) return guard;
+        // Convert textarea (dòng xuống) → JSON array
+        var ingredientsJson  = LinesToJson(ingredients);
+        var instructionsJson = LinesToJson(instructions);
         await _api.PostAsync<JsonElement>("admin/recipes", new
         {
             name, description, calories, protein, carb, fat, fiber,
-            category, prepTimeMin, tags, imageUrl, isActive = true
+            category, prepTimeMin, tags, imageUrl,
+            ingredients = ingredientsJson,
+            instructions = instructionsJson,
+            isActive = true
         });
         return RedirectToAction("Recipes");
     }
@@ -111,15 +118,32 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateRecipe(int id, string name, string? description, int calories,
         double protein, double carb, double fat, double fiber,
-        string category, int? prepTimeMin, string? tags, string? imageUrl, bool isActive = true)
+        string category, int? prepTimeMin, string? tags, string? imageUrl,
+        string? ingredients, string? instructions, bool isActive = true)
     {
         var guard = RequireAdmin(); if (guard != null) return guard;
+        var ingredientsJson  = LinesToJson(ingredients);
+        var instructionsJson = LinesToJson(instructions);
         await _api.PutAsync<JsonElement>($"admin/recipes/{id}", new
         {
             name, description, calories, protein, carb, fat, fiber,
-            category, prepTimeMin, tags, imageUrl, isActive
+            category, prepTimeMin, tags, imageUrl,
+            ingredients = ingredientsJson,
+            instructions = instructionsJson,
+            isActive
         });
         return RedirectToAction("Recipes");
+    }
+
+    // Helper: chuyển textarea nhiều dòng → JSON array string
+    private static string? LinesToJson(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(l => l.Trim())
+                        .Where(l => !string.IsNullOrEmpty(l))
+                        .ToList();
+        return lines.Any() ? System.Text.Json.JsonSerializer.Serialize(lines) : null;
     }
 
     // ── Subscriptions ──────────────────────────────────────────

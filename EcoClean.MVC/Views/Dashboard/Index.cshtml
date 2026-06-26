@@ -8,98 +8,193 @@
     int todayCal = meals.Sum(m => m.TryGetProperty("calories", out var c) ? c.GetInt32() : 0);
     int goalCal  = profile.HasValue && profile.Value.TryGetProperty("dailyCalorieGoal", out var g) ? g.GetInt32() : 2000;
     int calPct   = Math.Min(100, goalCal > 0 ? (int)(todayCal * 100.0 / goalCal) : 0);
+    var userName = Context.Request.Cookies["ecoclean_name"] ?? "bạn";
+    var isPremium = Context.Request.Cookies["ecoclean_role"] == "Premium" || Context.Request.Cookies["ecoclean_role"] == "Admin";
+
+    // Lời chào theo thời gian
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Chào buổi sáng" : hour < 18 ? "Chào buổi chiều" : "Chào buổi tối";
+    var greetIcon = hour < 12 ? "bi-brightness-high" : hour < 18 ? "bi-sun" : "bi-moon-stars";
+
+    // Trạng thái calo hôm nay
+    string calMessage; string calMsgColor;
+    if (todayCal == 0)        { calMessage = "Chưa ghi bữa ăn nào hôm nay"; calMsgColor = "#64748b"; }
+    else if (calPct >= 100)   { calMessage = "Đã đạt mục tiêu calo hôm nay! 🎉"; calMsgColor = "#ef4444"; }
+    else if (calPct >= 80)    { calMessage = "Gần đạt mục tiêu, cẩn thận nhé!"; calMsgColor = "#f59e0b"; }
+    else                       { calMessage = $"Còn {(goalCal - todayCal):N0} kcal để đạt mục tiêu"; calMsgColor = "#16a34a"; }
+
+    // BMI insights
+    var bmiCat = profile.HasValue && profile.Value.TryGetProperty("bmiCategory", out var bc) ? bc.GetString() : null;
+    string bmiTip = bmiCat switch {
+        "Underweight" => "💡 Bạn đang thiếu cân. Tăng protein và calo lành mạnh mỗi ngày.",
+        "Normal"      => "✅ BMI của bạn lý tưởng! Tiếp tục duy trì lối sống lành mạnh.",
+        "Overweight"  => "💡 Hãy giảm 300-500 kcal/ngày và tăng vận động nhẹ.",
+        "Obese"       => "💡 Tham khảo chuyên gia dinh dưỡng để có kế hoạch phù hợp.",
+        _             => null
+    };
+
+    // Streak cân nặng
+    var streak = 0;
+    if (logs.Count > 0) {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        for (int i = logs.Count - 1; i >= 0; i--) {
+            if (logs[i].TryGetProperty("logDate", out var ld)) {
+                if (DateOnly.TryParse(ld.GetString(), out var d) && d == today.AddDays(-(logs.Count - 1 - i))) streak++;
+                else break;
+            }
+        }
+    }
+
+    // Mục tiêu người dùng
+    var userGoal = profile.HasValue && profile.Value.TryGetProperty("goal", out var gl) ? gl.GetString() : null;
 }
 
 <div class="container py-4">
-    <div class="d-flex align-items-center mb-4">
-        <i class="bi bi-speedometer2 text-success fs-2 me-3"></i>
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
         <div>
-            <h2 class="fw-bold mb-0">Dashboard</h2>
-            <p class="text-muted mb-0">@DateTime.Today.ToString("dddd, dd/MM/yyyy")</p>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi @greetIcon" style="color:#f59e0b;font-size:1.1rem"></i>
+                <span class="text-muted small fw-semibold">@greeting, @DateTime.Today.ToString("dddd, dd/MM/yyyy")</span>
+            </div>
+            <h2 class="fw-bold mb-0" style="letter-spacing:-0.03em">
+                @userName
+                @if (isPremium)
+                {
+                    <span class="badge align-middle ms-1" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.6rem;vertical-align:middle">PRO</span>
+                }
+            </h2>
+            @if (userGoal != null)
+            {
+                var goalLabel = userGoal switch { "LoseWeight" => "🎯 Mục tiêu: Giảm cân", "GainWeight" => "🎯 Mục tiêu: Tăng cân", _ => "🎯 Mục tiêu: Duy trì cân nặng" };
+                <p class="text-muted mb-0 small">@goalLabel</p>
+            }
+        </div>
+        <div class="d-flex gap-2">
+            @if (streak >= 3)
+            {
+                <div class="d-flex align-items-center gap-1 px-3 py-2 rounded-pill fw-semibold"
+                     style="background:linear-gradient(135deg,#fef9c3,#fffbeb);color:#d97706;border:1px solid rgba(245,158,11,.2);font-size:.82rem">
+                    <i class="bi bi-fire text-warning"></i> @streak ngày liên tiếp
+                </div>
+            }
+            <a asp-controller="Profile" asp-action="Index"
+               class="btn btn-sm rounded-pill fw-semibold"
+               style="background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0">
+                <i class="bi bi-person-gear me-1"></i>Hồ sơ
+            </a>
         </div>
     </div>
 
+    @* BMI tip card *@
+    @if (bmiTip != null)
+    {
+        var (tipColor, tipBg) = bmiCat switch {
+            "Normal"      => ("#16a34a", "linear-gradient(135deg,#f0fdf4,#dcfce7)"),
+            "Underweight" => ("#0ea5e9", "linear-gradient(135deg,#f0f9ff,#e0f2fe)"),
+            _             => ("#f59e0b", "linear-gradient(135deg,#fffbeb,#fef9c3)")
+        };
+        <div class="card border-0 mb-4 p-3 d-flex flex-row align-items-center gap-3"
+             style="background:@tipBg;border-radius:14px !important">
+            <i class="bi bi-lightbulb-fill flex-shrink-0" style="color:@tipColor;font-size:1.2rem"></i>
+            <span class="small fw-semibold" style="color:@tipColor">@bmiTip</span>
+            @if (!isPremium)
+            {
+                <a asp-controller="Premium" asp-action="Chat" class="btn btn-sm ms-auto rounded-pill fw-semibold flex-shrink-0"
+                   style="background:@tipColor;color:white;border:none;font-size:.75rem">
+                    Hỏi AI
+                </a>
+            }
+        </div>
+    }
+
     @if (profile == null)
     {
-        <div class="alert alert-info rounded-4 d-flex align-items-center gap-3">
-            <i class="bi bi-info-circle-fill fs-3"></i>
-            <div>
-                <strong>Hoàn thiện hồ sơ để bắt đầu!</strong>
-                Nhập thông tin sức khỏe để tính BMI & TDEE cá nhân hóa cho bạn.
-                <a asp-controller="Profile" asp-action="Index" class="btn btn-sm btn-info ms-3">Cập nhật ngay</a>
+        <div class="card border-0 mb-4 p-4 d-flex flex-row align-items-center gap-3"
+             style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:16px !important">
+            <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:48px;height:48px;background:#3b82f6;color:white;font-size:1.3rem">
+                <i class="bi bi-info-circle-fill"></i>
             </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold mb-1">Hoàn thiện hồ sơ để bắt đầu!</div>
+                <div class="text-muted small">Nhập thông tin sức khỏe để tính BMI & TDEE cá nhân hóa cho bạn.</div>
+            </div>
+            <a asp-controller="Profile" asp-action="Index"
+               class="btn btn-sm rounded-pill fw-semibold flex-shrink-0"
+               style="background:#3b82f6;color:white;border:none">
+                Cập nhật ngay
+            </a>
         </div>
     }
 
     <!-- Stats Row -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 rounded-4 shadow-sm h-100 text-center p-3" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5)">
-                <div class="text-success fw-bold fs-5">BMI</div>
-                <div class="display-6 fw-bold text-success">
-                    @(profile.HasValue && profile.Value.TryGetProperty("bmi", out var bmi) ? bmi.GetDouble().ToString("0.0") : "--")
+        @{
+            var bmiVal  = profile.HasValue && profile.Value.TryGetProperty("bmi",         out var bmi)  ? bmi.GetDouble().ToString("0.0")  : "--";
+            var bmiCatDisp = profile.HasValue && profile.Value.TryGetProperty("bmiCategory", out var cat)  ? cat.GetString() : "Chưa có";
+            var tdeeVal = profile.HasValue && profile.Value.TryGetProperty("tdee",        out var tdee) ? ((int)tdee.GetDouble()).ToString("N0") : "--";
+            var wVal    = logs.Any() && logs.Last().TryGetProperty("weight", out var w) ? w.GetDouble().ToString("0.0") : "--";
+        }
+        @foreach (var (title, val, sub, color, bg, icon) in new[] {
+            ("BMI",        bmiVal,              bmiCatDisp,      "#16a34a", "linear-gradient(135deg,#f0fdf4,#dcfce7)", "bi-heart-pulse"),
+            ("TDEE",       tdeeVal,             "kcal/ngày",     "#3b82f6", "linear-gradient(135deg,#eff6ff,#dbeafe)", "bi-lightning-charge"),
+            ("Hôm nay",    todayCal.ToString("N0"), $"/ {goalCal:N0} kcal", "#f59e0b", "linear-gradient(135deg,#fffbeb,#fef9c3)", "bi-fire"),
+            ("Cân nặng",   wVal,                "kg",            "#8b5cf6", "linear-gradient(135deg,#fdf4ff,#fae8ff)", "bi-graph-up"),
+        })
+        {
+            <div class="col-6 col-md-3">
+                <div class="card border-0 h-100 p-3" style="background:@bg;border-radius:16px !important">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="small fw-semibold" style="color:@color">@title</span>
+                        <i class="bi @icon" style="color:@color;opacity:.6"></i>
+                    </div>
+                    <div class="fw-bold" style="font-size:1.75rem;letter-spacing:-0.03em;color:@color">@val</div>
+                    <div class="text-muted small">@sub</div>
                 </div>
-                <small class="text-muted">
-                    @(profile.HasValue && profile.Value.TryGetProperty("bmiCategory", out var cat) ? cat.GetString() : "Chưa có")
-                </small>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 rounded-4 shadow-sm h-100 text-center p-3" style="background:linear-gradient(135deg,#eff6ff,#dbeafe)">
-                <div class="text-primary fw-bold fs-5">TDEE</div>
-                <div class="display-6 fw-bold text-primary">
-                    @(profile.HasValue && profile.Value.TryGetProperty("tdee", out var tdee) ? ((int)tdee.GetDouble()).ToString("N0") : "--")
-                </div>
-                <small class="text-muted">kcal/ngày</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 rounded-4 shadow-sm h-100 text-center p-3" style="background:linear-gradient(135deg,#fefce8,#fef9c3)">
-                <div class="text-warning fw-bold fs-5">Hôm nay</div>
-                <div class="display-6 fw-bold text-warning">@todayCal.ToString("N0")</div>
-                <small class="text-muted">/ @goalCal.ToString("N0") kcal</small>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 rounded-4 shadow-sm h-100 text-center p-3" style="background:linear-gradient(135deg,#fdf4ff,#fae8ff)">
-                <div class="text-purple fw-bold fs-5" style="color:#9333ea">Cân nặng</div>
-                <div class="display-6 fw-bold" style="color:#9333ea">
-                    @(logs.Any() && logs.Last().TryGetProperty("weight", out var w) ? w.GetDouble().ToString("0.0") : "--")
-                </div>
-                <small class="text-muted">kg</small>
-            </div>
-        </div>
+        }
     </div>
 
     <div class="row g-4">
         <!-- Calorie Progress -->
         <div class="col-md-6">
-            <div class="card border-0 rounded-4 shadow-sm p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="bi bi-fire text-danger me-2"></i>Calo hôm nay</h5>
-                <div class="d-flex justify-content-between mb-1">
-                    <span>@todayCal kcal đã ăn</span>
-                    <span class="text-muted">@goalCal kcal mục tiêu</span>
+            <div class="card border-0 p-4 h-100" style="border-radius:16px !important">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-2 d-flex align-items-center justify-content-center"
+                         style="width:34px;height:34px;background:rgba(239,68,68,.1);color:#ef4444">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">Calo hôm nay</h5>
                 </div>
-                <div class="progress rounded-pill" style="height:16px">
-                    <div class="progress-bar @(calPct >= 100 ? "bg-danger" : calPct >= 80 ? "bg-warning" : "bg-success") rounded-pill"
-                         style="width:@calPct%"></div>
+
+                <div class="d-flex justify-content-between mb-2 small">
+                    <span class="fw-semibold">@todayCal.ToString("N0") kcal đã ăn</span>
+                    <span class="text-muted">@goalCal.ToString("N0") kcal mục tiêu</span>
                 </div>
-                <div class="mt-2 text-muted small">
+                <div class="progress mb-2" style="height:12px;border-radius:30px">
+                    <div class="progress-bar @(calPct >= 100 ? "bg-danger" : calPct >= 80 ? "bg-warning" : "bg-success")"
+                         style="width:@calPct%;border-radius:30px"></div>
+                </div>
+                <div class="small mb-3">
                     @if (calPct >= 100)
-                    { <span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Đã vượt mức calo!</span> }
+                    {
+                        <span class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle me-1"></i>Đã vượt mức calo!</span>
+                    }
                     else
-                    { <span>Còn @(goalCal - todayCal) kcal</span> }
-                </div>
-                <hr />
-                <div class="d-flex gap-2 flex-wrap">
+                    {
+                        <span class="text-muted">Còn <strong class="text-success">@(goalCal - todayCal).ToString("N0") kcal</strong></span>
+                    }
+                </div>                <div class="d-flex flex-wrap gap-2 mb-3">
                     @foreach (var meal in meals)
                     {
                         var type = meal.TryGetProperty("mealType", out var mt) ? mt.GetString() : "";
                         var icon = type switch { "Breakfast" => "bi-sun", "Lunch" => "bi-brightness-high", "Dinner" => "bi-moon-stars", _ => "bi-apple" };
-                        <span class="badge bg-success-subtle text-success rounded-pill py-2 px-3">
-                            <i class="bi @icon me-1"></i>
+                        <span class="d-flex align-items-center gap-1 px-2 py-1 rounded-pill small fw-semibold"
+                              style="background:rgba(22,163,74,.1);color:#16a34a">
+                            <i class="bi @icon"></i>
                             @(meal.TryGetProperty("title", out var t) ? t.GetString() : "")
-                            <span class="ms-1 text-muted">@(meal.TryGetProperty("calories", out var cal) ? cal.GetInt32() : 0)kcal</span>
+                            <span class="text-muted fw-normal">@(meal.TryGetProperty("calories", out var cal) ? cal.GetInt32() : 0)kcal</span>
                         </span>
                     }
                     @if (!meals.Any())
@@ -107,7 +202,10 @@
                         <span class="text-muted small">Chưa có bữa ăn nào hôm nay</span>
                     }
                 </div>
-                <a asp-controller="MealPlan" asp-action="Index" class="btn btn-outline-success btn-sm mt-3 rounded-pill">
+
+                <a asp-controller="MealPlan" asp-action="Index"
+                   class="btn btn-sm rounded-pill fw-semibold mt-auto"
+                   style="background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.2)">
                     <i class="bi bi-plus-circle me-1"></i>Thêm bữa ăn
                 </a>
             </div>
@@ -115,45 +213,98 @@
 
         <!-- Weight Chart -->
         <div class="col-md-6">
-            <div class="card border-0 rounded-4 shadow-sm p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="bi bi-graph-up text-info me-2"></i>Cân nặng 30 ngày qua</h5>
+            <div class="card border-0 p-4 h-100" style="border-radius:16px !important">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-2 d-flex align-items-center justify-content-center"
+                         style="width:34px;height:34px;background:rgba(14,165,233,.1);color:#0ea5e9">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">Cân nặng 30 ngày</h5>
+                </div>
                 @if (logs.Any())
                 {
                     <canvas id="weightChart" height="160"></canvas>
                 }
                 else
                 {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-clipboard-data display-4 d-block mb-3"></i>
-                        Chưa có dữ liệu cân nặng
+                    <div class="text-center py-4 text-muted flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                        <i class="bi bi-clipboard-data display-4 d-block mb-3 opacity-25"></i>
+                        <p class="mb-0 small">Chưa có dữ liệu cân nặng</p>
                     </div>
                 }
-                <a asp-controller="Weight" asp-action="Index" class="btn btn-outline-info btn-sm mt-3 rounded-pill">
+                <a asp-controller="Weight" asp-action="Index"
+                   class="btn btn-sm rounded-pill fw-semibold mt-3"
+                   style="background:rgba(14,165,233,.1);color:#0ea5e9;border:1px solid rgba(14,165,233,.2)">
                     <i class="bi bi-pencil me-1"></i>Ghi cân nặng
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Quick Links -->
-    <div class="row g-3 mt-2">
-        <div class="col-12"><h5 class="fw-bold">Truy cập nhanh</h5></div>
-        @foreach (var (lbl, icon, ctrl, act, color) in new[] {
-            ("Công thức Eat Clean", "bi-journal-richtext", "Recipe", "Index", "success"),
-            ("Lịch ăn uống",        "bi-calendar3",        "MealPlan", "Index", "primary"),
-            ("Cập nhật hồ sơ",      "bi-person-gear",      "Profile",  "Index", "secondary"),
-            ("Premium",             "bi-stars",            "Premium",  "Index", "warning")
-        })
-        {
+    <!-- Quick Links cá nhân hóa -->
+    <div class="mt-4">
+        <h5 class="fw-bold mb-3">Truy cập nhanh</h5>
+        <div class="row g-3">
             <div class="col-6 col-md-3">
-                <a asp-controller="@ctrl" asp-action="@act"
-                   class="card border-0 rounded-4 shadow-sm p-3 text-decoration-none text-center d-block hover-lift">
-                    <i class="bi @icon text-@color fs-2 d-block mb-2"></i>
-                    <span class="fw-semibold text-dark">@lbl</span>
+                <a asp-controller="Profile" asp-action="Index"
+                   class="card border-0 p-3 text-decoration-none text-center d-block"
+                   style="border-radius:16px !important;background:rgba(22,163,74,.08);transition:all .2s"
+                   onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+                   onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <i class="bi bi-person-circle d-block mb-2" style="font-size:1.75rem;color:#16a34a"></i>
+                    <span class="fw-semibold small" style="color:#0f172a">Hồ sơ cá nhân</span>
                 </a>
             </div>
-        }
+            <div class="col-6 col-md-3">
+                <a asp-controller="MealPlan" asp-action="Index"
+                   class="card border-0 p-3 text-decoration-none text-center d-block"
+                   style="border-radius:16px !important;background:rgba(59,130,246,.08);transition:all .2s"
+                   onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+                   onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <i class="bi bi-calendar3 d-block mb-2" style="font-size:1.75rem;color:#3b82f6"></i>
+                    <span class="fw-semibold small" style="color:#0f172a">Lịch ăn uống</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a asp-controller="Weight" asp-action="Index"
+                   class="card border-0 p-3 text-decoration-none text-center d-block"
+                   style="border-radius:16px !important;background:rgba(139,92,246,.08);transition:all .2s"
+                   onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+                   onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <i class="bi bi-graph-up d-block mb-2" style="font-size:1.75rem;color:#8b5cf6"></i>
+                    <span class="fw-semibold small" style="color:#0f172a">Cân nặng</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a asp-controller="Premium" asp-action="@(isPremium ? "Chat" : "Payment")"
+                   class="card border-0 p-3 text-decoration-none text-center d-block"
+                   style="border-radius:16px !important;background:rgba(245,158,11,.08);transition:all .2s"
+                   onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+                   onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <i class="bi @(isPremium ? "bi-chat-dots-fill" : "bi-stars") d-block mb-2" style="font-size:1.75rem;color:#f59e0b"></i>
+                    <span class="fw-semibold small" style="color:#0f172a">@(isPremium ? "AI Chat" : "Nâng cấp Pro")</span>
+                </a>
+            </div>
+        </div>
     </div>
+
+    @* Upsell Premium nếu chưa đăng ký *@
+    @if (!isPremium)
+    {
+        <div class="card border-0 mt-4 p-4 d-flex flex-row align-items-center gap-3"
+             style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border-radius:16px !important;border:1px solid rgba(245,158,11,.2) !important">
+            <i class="bi bi-stars flex-shrink-0" style="color:#d97706;font-size:1.5rem"></i>
+            <div class="flex-grow-1">
+                <div class="fw-bold mb-1" style="color:#92400e">Nâng cấp Premium để mở khóa AI</div>
+                <div class="small text-muted">Quét ảnh thực phẩm, chatbot 24/7 và thực đơn AI cá nhân hóa cho @userName</div>
+            </div>
+            <a asp-controller="Premium" asp-action="Payment"
+               class="btn btn-sm rounded-pill fw-bold flex-shrink-0"
+               style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;white-space:nowrap">
+                Dùng thử ngay
+            </a>
+        </div>
+    }
 </div>
 
 @section Scripts {
@@ -172,18 +323,18 @@ if (logs.length > 0 && document.getElementById('weightChart')) {
                 label: 'Cân nặng (kg)',
                 data: logs.map(l => l.weight),
                 borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14,165,233,0.1)',
+                backgroundColor: 'rgba(14,165,233,0.08)',
                 fill: true, tension: 0.4,
                 pointBackgroundColor: '#0ea5e9',
-                pointRadius: 4
+                pointRadius: 4, pointHoverRadius: 6
             }]
         },
         options: {
             responsive: true,
             plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }
+                y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 11 } } }
             }
         }
     });

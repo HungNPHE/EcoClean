@@ -12,7 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ──────────────────────────────────────────────────
 builder.Services.AddDbContext<EcoCleanDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOpt =>
+        {
+            sqlOpt.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+            sqlOpt.CommandTimeout(60);
+        }));
 
 // ── JWT Auth ──────────────────────────────────────────────────
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
@@ -37,6 +46,7 @@ builder.Services.AddAuthorization();
 
 // ── Services ──────────────────────────────────────────────────
 builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<IFreeTrialService, FreeTrialService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
@@ -46,7 +56,10 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IFoodScanService, FoodScanService>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddScoped<IAIMealPlanService, AIMealPlanService>();
-builder.Services.AddHttpClient<IGeminiService, GeminiService>();
+builder.Services.AddScoped<IRecipeSuggestionService, RecipeSuggestionService>();
+builder.Services.AddScoped<ISePayWebhookService, SePayWebhookService>();
+builder.Services.AddHttpClient<IGeminiService, GeminiService>();  // vision — Food Scan
+builder.Services.AddHttpClient<IGroqService, GroqService>();       // text — Chatbot & Meal Plan
 
 // ── CORS ──────────────────────────────────────────────────────
 builder.Services.AddCors(opt => opt.AddPolicy("AllowMVC", p =>
@@ -88,7 +101,23 @@ using (var scope = app.Services.CreateScope())
 {
     var db  = scope.ServiceProvider.GetRequiredService<EcoCleanDbContext>();
     var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    await db.Database.MigrateAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    // Retry migration vì Azure SQL Free tier có thể chưa sẵn sàng ngay
+    var maxRetries = 5;
+    for (int i = 1; i <= maxRetries; i++)
+    {
+        try
+        {
+            await db.Database.MigrateAsync();
+            break;
+        }
+        catch (Exception ex) when (i < maxRetries)
+        {
+            logger.LogWarning("Migration attempt {Attempt}/{Max} failed: {Message}. Retrying in 15s...", i, maxRetries, ex.Message);
+            await Task.Delay(TimeSpan.FromSeconds(15));
+        }
+    }
 
     // Seed admin account from config (safe to run on every startup)
     var adminEmail = cfg["AdminSeed:Email"];
@@ -120,11 +149,21 @@ using (var scope = app.Services.CreateScope())
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// Cho phép đọc lại request body (cần cho SePay webhook signature verify)
+app.Use(async (ctx, next) =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    ctx.Request.EnableBuffering();
+    await next();
+});
+
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("AllowMVC");
 app.UseAuthentication();

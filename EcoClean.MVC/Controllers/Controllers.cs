@@ -8,7 +8,18 @@ namespace EcoClean.MVC.Controllers;
 public abstract class BaseController : Controller
 {
     protected bool IsAuthenticated => Request.Cookies.ContainsKey("ecoclean_token");
-    protected bool IsPremium => HttpContext.Items["IsPremium"]?.ToString() == "True";
+
+    // Admin cũng có quyền premium
+    protected bool IsPremium
+    {
+        get
+        {
+            var fromJwt  = HttpContext.Items["IsPremium"]?.ToString() == "True";
+            var role     = HttpContext.Items["Role"]?.ToString()
+                        ?? Request.Cookies["ecoclean_role"] ?? "";
+            return fromJwt || role == "Admin";
+        }
+    }
 
     protected IActionResult RequireAuth()
     {
@@ -41,7 +52,21 @@ public class AccountController : BaseController
     [HttpPost]
     public async Task<IActionResult> Login(string email, string password)
     {
-        var result = await _api.PostAsync<JsonElement>("auth/login", new { email, password });
+        JsonElement result;
+        try
+        {
+            result = await _api.PostAsync<JsonElement>("auth/login", new { email, password });
+        }
+        catch (ApiException)
+        {
+            ViewBag.Error = "Email hoặc mật khẩu không đúng";
+            return View();
+        }
+        catch
+        {
+            ViewBag.Error = "Không thể kết nối đến máy chủ. Vui lòng thử lại.";
+            return View();
+        }
 
         if (result.ValueKind == JsonValueKind.Undefined ||
             !result.TryGetProperty("accessToken", out var tokenProp))
@@ -259,9 +284,17 @@ public class PremiumController : BaseController
     private readonly ApiClient _api;
     public PremiumController(ApiClient api) => _api = api;
 
+    // Helper: check auth + premium, redirect nếu thiếu
+    private IActionResult? RequirePremium()
+    {
+        if (!IsAuthenticated) return RedirectToAction("Login", "Account");
+        if (!IsPremium)       return RedirectToAction("Payment", "Premium");
+        return null;
+    }
+
     public IActionResult Index() => View();
 
-    // Food Scan
+    // ── Food Scan ──────────────────────────────────────────────
     public IActionResult Scan()
     {
         if (!IsAuthenticated) return RedirectToAction("Login", "Account");
@@ -269,14 +302,30 @@ public class PremiumController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> ScanSubmit(string base64Image)
+    public async Task<IActionResult> ScanSubmit([FromBody] string base64Image)
     {
-        // Send as JSON string — must be a quoted JSON string value
-        var result = await _api.PostRawAsync<JsonElement>("foodscan", $"\"{base64Image}\"");
-        return Json(result);
+        if (!IsAuthenticated) return Unauthorized();
+        if (string.IsNullOrEmpty(base64Image))
+            return BadRequest(new { error = "Không có dữ liệu ảnh" });
+        try
+        {
+            var result = await _api.PostRawAsync<JsonElement>("foodscan", $"\"{base64Image}\"");
+            RefreshTokenIfNeeded(result);
+            // Trả về data thật (có thể wrapped hoặc không)
+            var data = result.TryGetProperty("data", out var d) ? d : result;
+            var freeTrialUsed = result.TryGetProperty("freeTrialUsed", out var ft) ? ft.GetInt32() : (int?)null;
+            var freeTrialLimit = result.TryGetProperty("freeTrialLimit", out var fl) ? fl.GetInt32() : 10;
+            return Json(new { data, freeTrialUsed, freeTrialLimit });
+        }
+        catch (ApiException ex) when (ex.StatusCode == 403)
+        {
+            return StatusCode(403, new { error = "Bạn đã dùng hết 10 lượt miễn phí. Vui lòng nâng cấp Premium." });
+        }
+        catch (ApiException ex) { return StatusCode(ex.StatusCode, new { error = ex.Message }); }
+        catch (Exception ex)    { return StatusCode(500, new { error = ex.Message }); }
     }
 
-    // Chatbot
+    // ── Chatbot ────────────────────────────────────────────────
     public IActionResult Chat()
     {
         if (!IsAuthenticated) return RedirectToAction("Login", "Account");
@@ -286,11 +335,25 @@ public class PremiumController : BaseController
     [HttpPost]
     public async Task<IActionResult> ChatSend(string message, string? sessionId)
     {
-        var result = await _api.PostAsync<JsonElement>("chat", new { message, sessionId });
-        return Json(result);
+        if (!IsAuthenticated) return Unauthorized();
+        try
+        {
+            var result = await _api.PostAsync<JsonElement>("chat", new { message, sessionId });
+            RefreshTokenIfNeeded(result);
+            var data = result.TryGetProperty("data", out var d) ? d : result;
+            var freeTrialUsed = result.TryGetProperty("freeTrialUsed", out var ft) ? ft.GetInt32() : (int?)null;
+            var freeTrialLimit = result.TryGetProperty("freeTrialLimit", out var fl) ? fl.GetInt32() : 10;
+            return Json(new { data, freeTrialUsed, freeTrialLimit });
+        }
+        catch (ApiException ex) when (ex.StatusCode == 403)
+        {
+            return StatusCode(403, new { error = "Bạn đã dùng hết 10 lượt miễn phí. Vui lòng nâng cấp Premium." });
+        }
+        catch (ApiException ex) { return StatusCode(ex.StatusCode, new { error = ex.Message }); }
+        catch (Exception ex)    { return StatusCode(500, new { error = ex.Message }); }
     }
 
-    // AI Meal Plan
+    // ── AI Meal Plan ───────────────────────────────────────────
     public IActionResult AIPlan()
     {
         if (!IsAuthenticated) return RedirectToAction("Login", "Account");
@@ -298,14 +361,72 @@ public class PremiumController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> AIPlanGenerate(string goal, int durationDays)
+    public async Task<IActionResult> AIPlanGenerate(string goal, int durationDays, string? foodContext = null)
     {
-        var result = await _api.PostAsync<JsonElement>("aimealplan", new { goal, durationDays });
-        return Json(result);
+        if (!IsAuthenticated) return Unauthorized();
+        try
+        {
+            var result = await _api.PostAsync<JsonElement>("aimealplan", new { goal, durationDays, foodContext });
+            RefreshTokenIfNeeded(result);
+            var data = result.TryGetProperty("data", out var d) ? d : result;
+            var freeTrialUsed = result.TryGetProperty("freeTrialUsed", out var ft) ? ft.GetInt32() : (int?)null;
+            var freeTrialLimit = result.TryGetProperty("freeTrialLimit", out var fl) ? fl.GetInt32() : 10;
+            return Json(new { data, freeTrialUsed, freeTrialLimit });
+        }
+        catch (ApiException ex) when (ex.StatusCode == 403)
+        {
+            return StatusCode(403, new { error = "Bạn đã dùng hết 10 lượt miễn phí. Vui lòng nâng cấp Premium." });
+        }
+        catch (ApiException ex) { return StatusCode(ex.StatusCode, new { error = ex.Message }); }
+        catch (Exception ex)    { return StatusCode(500, new { error = ex.Message }); }
     }
 
-    // Payment
-    public IActionResult Payment() => View();
+    [HttpGet]
+    public async Task<IActionResult> RecipeSuggest(string ingredient)
+    {
+        if (!IsAuthenticated) return Unauthorized();
+        try
+        {
+            var result = await _api.GetAsync<JsonElement>($"recipesuggestion?ingredient={Uri.EscapeDataString(ingredient)}");
+            RefreshTokenIfNeeded(result);
+            var data = result.TryGetProperty("data", out var d) ? d : result;
+            return Json(new { data });
+        }
+        catch (ApiException ex) when (ex.StatusCode == 403)
+        {
+            return StatusCode(403, new { error = "Bạn đã dùng hết 10 lượt miễn phí. Vui lòng nâng cấp Premium." });
+        }
+        catch (ApiException ex) { return StatusCode(ex.StatusCode, new { error = ex.Message }); }
+        catch (Exception ex)    { return StatusCode(500, new { error = ex.Message }); }
+    }
+
+    // Helper: nếu API trả về newToken thì cập nhật cookie để JWT có FreeTrialUsed mới
+    private void RefreshTokenIfNeeded(JsonElement result)
+    {
+        if (result.TryGetProperty("newToken", out var nt)
+            && nt.ValueKind == JsonValueKind.String
+            && nt.GetString() is { Length: > 0 } newToken)
+        {
+            var isHttps = HttpContext.RequestServices
+                .GetRequiredService<IWebHostEnvironment>().IsProduction();
+            Response.Cookies.Append("ecoclean_token", newToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = isHttps,
+                SameSite = isHttps ? SameSiteMode.Strict : SameSiteMode.Lax,
+                Expires  = DateTimeOffset.UtcNow.AddDays(7)
+            });
+        }
+    }
+
+    // ── Payment (ai cũng vào được) ─────────────────────────────
+    public IActionResult Payment()
+    {
+        // Nếu đã premium thì redirect về trang premium index
+        if (IsAuthenticated && IsPremium)
+            return RedirectToAction("Index", "Premium");
+        return View();
+    }
 
     [HttpPost]
     public async Task<IActionResult> Subscribe(string plan)
@@ -318,6 +439,7 @@ public class PremiumController : BaseController
     [HttpPost]
     public async Task<IActionResult> ConfirmPayment(int subId, string txRef)
     {
+        if (!IsAuthenticated) return Unauthorized();
         var result = await _api.PostAsync<JsonElement>($"subscriptions/{subId}/confirm?txRef={txRef}", new { });
         return Json(result);
     }

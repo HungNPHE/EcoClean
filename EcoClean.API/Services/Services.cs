@@ -8,6 +8,43 @@ using System.Text.Json;
 namespace EcoClean.API.Services;
 
 // ═══════════════════════════════════════════════════════════════
+// FREE TRIAL SERVICE
+// ═══════════════════════════════════════════════════════════════
+public interface IFreeTrialService
+{
+    /// <summary>Tăng counter FreeTrialUsed. Trả về JWT mới (để client refresh token).</summary>
+    Task<(bool allowed, string? newToken)> ConsumeAsync(int userId);
+}
+
+public class FreeTrialService : IFreeTrialService
+{
+    public const int Limit = 10;
+    private readonly EcoCleanDbContext _db;
+    private readonly JwtHelper _jwt;
+
+    public FreeTrialService(EcoCleanDbContext db, JwtHelper jwt) { _db = db; _jwt = jwt; }
+
+    public async Task<(bool allowed, string? newToken)> ConsumeAsync(int userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return (false, null);
+
+        // Nếu đã premium thì không tốn lượt
+        if (user.IsPremium) return (true, null);
+
+        if (user.FreeTrialUsed >= Limit)
+            return (false, null);
+
+        user.FreeTrialUsed++;
+        await _db.SaveChangesAsync();
+
+        // Tạo JWT mới với FreeTrialUsed đã cập nhật
+        var newToken = _jwt.GenerateToken(user);
+        return (true, newToken);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // AUTH SERVICE
 // ═══════════════════════════════════════════════════════════════
 public interface IAuthService
@@ -152,7 +189,7 @@ public class RecipeService : IRecipeService
 
     public static RecipeDto ToDto(Recipe r) => new(
         r.Id, r.Name, r.Description, r.Calories, r.Protein, r.Carb, r.Fat, r.Fiber,
-        r.Category, r.Tags, r.ImageUrl, r.PrepTimeMin);
+        r.Category, r.Tags, r.ImageUrl, r.PrepTimeMin, r.Ingredients, r.Instructions);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -268,8 +305,8 @@ public class SubscriptionService : ISubscriptionService
 
     private static readonly Dictionary<string, (decimal price, int months)> Plans = new()
     {
-        ["Monthly"] = (99_000m, 1),
-        ["Yearly"]  = (799_000m, 12)
+        ["Monthly"] = (49_000m, 1),
+        ["Yearly"]  = (499_000m, 12)
     };
 
     public SubscriptionService(EcoCleanDbContext db, IConfiguration config) { _db = db; _config = config; }
@@ -280,10 +317,30 @@ public class SubscriptionService : ISubscriptionService
             plan = Plans["Monthly"];
 
         var txRef = $"ECO{userId}{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-        var bankCode    = _config["Payment:BankCode"] ?? "MB";
-        var bankAccount = _config["Payment:AccountNumber"] ?? "0000000000";
-        var desc = Uri.EscapeDataString($"ECOCLEAN {txRef}");
-        var qr = $"https://img.vietqr.io/image/{bankCode}-{bankAccount}-compact.png?amount={plan.price}&addInfo={desc}&accountName=ECOCLEAN";
+
+        // Chọn phương thức thanh toán từ config
+        var payMethod   = _config["Payment:Method"] ?? "MoMo"; // "MoMo" | "VietQR"
+        var momoPhone   = _config["Payment:MoMoPhone"]   ?? "";
+        var momoName    = _config["Payment:MoMoName"]    ?? "ECOCLEAN";
+        var bankCode    = _config["Payment:BankCode"]    ?? "TCB";
+        var bankAccount = _config["Payment:AccountNumber"] ?? "";
+
+        string qr;
+        if (payMethod == "MoMo" && !string.IsNullOrEmpty(momoPhone))
+        {
+            // MoMo QR tĩnh — format deeplink hiển thị QR trong app MoMo
+            // Dùng api.vietqr.io để render QR từ số MoMo (MoMo dùng VietQR standard)
+            var note = Uri.EscapeDataString($"ECOCLEAN {txRef}");
+            qr = $"https://img.vietqr.io/image/MOMO-{momoPhone}-compact.png" +
+                 $"?amount={plan.price}&addInfo={note}&accountName={Uri.EscapeDataString(momoName)}";
+        }
+        else
+        {
+            // Fallback VietQR ngân hàng
+            var desc = Uri.EscapeDataString($"ECOCLEAN {txRef}");
+            qr = $"https://img.vietqr.io/image/{bankCode}-{bankAccount}-compact.png" +
+                 $"?amount={plan.price}&addInfo={desc}&accountName=ECOCLEAN";
+        }
 
         var sub = new Subscription
         {
@@ -301,22 +358,9 @@ public class SubscriptionService : ISubscriptionService
             .FirstOrDefaultAsync(s => s.Id == subId && s.UserId == userId && s.TransactionRef == txRef);
         if (sub == null) return null;
 
-        // Only confirm if still pending
-        if (sub.Status == "Paid") return ToDto(sub);
-
-        sub.Status = "Paid";
-        sub.PaidAt = DateTime.UtcNow;
-        sub.ExpiresAt = DateTime.UtcNow.AddMonths(Plans.TryGetValue(sub.Plan, out var p) ? p.months : 1);
-
-        var user = await _db.Users.FindAsync(userId);
-        if (user != null)
-        {
-            user.IsPremium = true;
-            user.PremiumExpiry = sub.ExpiresAt;
-            user.Role = "Premium";
-        }
-
-        await _db.SaveChangesAsync();
+        // Với flow thủ công (MoMo QR tĩnh), user chỉ "thông báo đã chuyển khoản"
+        // Không tự confirm — admin phải duyệt qua /api/admin/subscriptions/{id}/confirm
+        // Chỉ trả về trạng thái hiện tại (vẫn Pending) để FE hiển thị "Chờ duyệt"
         return ToDto(sub);
     }
 
@@ -334,7 +378,7 @@ public class SubscriptionService : ISubscriptionService
 }
 
 // ═══════════════════════════════════════════════════════════════
-// GEMINI AI SERVICE
+// GEMINI AI SERVICE  (vision-capable — dùng cho Food Scan)
 // ═══════════════════════════════════════════════════════════════
 public interface IGeminiService
 {
@@ -346,7 +390,7 @@ public class GeminiService : IGeminiService
 {
     private readonly HttpClient _http;
     private readonly string _apiKey;
-    private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+    private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     public GeminiService(HttpClient http, IConfiguration config)
     {
@@ -357,7 +401,7 @@ public class GeminiService : IGeminiService
     public async Task<string> GenerateTextAsync(string prompt)
     {
         var payload = new { contents = new[] { new { parts = new[] { new { text = prompt } } } } };
-        var res = await _http.PostAsJsonAsync($"{BaseUrl}?key={_apiKey}", payload);
+        var res = await SendWithRetryAsync(() => _http.PostAsJsonAsync($"{BaseUrl}?key={_apiKey}", payload));
         return await ExtractText(res);
     }
 
@@ -374,8 +418,22 @@ public class GeminiService : IGeminiService
                 }
             }
         };
-        var res = await _http.PostAsJsonAsync($"{BaseUrl}?key={_apiKey}", payload);
+        var res = await SendWithRetryAsync(() => _http.PostAsJsonAsync($"{BaseUrl}?key={_apiKey}", payload));
         return await ExtractText(res);
+    }
+
+    // Retry tối đa 3 lần khi gặp 429 (rate limit)
+    private static async Task<HttpResponseMessage> SendWithRetryAsync(Func<Task<HttpResponseMessage>> send)
+    {
+        int[] delays = [5000, 15000, 30000]; // 5s, 15s, 30s
+        for (int i = 0; i <= delays.Length; i++)
+        {
+            var res = await send();
+            if ((int)res.StatusCode != 429 || i == delays.Length)
+                return res;
+            await Task.Delay(delays[i]);
+        }
+        return await send(); // fallback
     }
 
     private static async Task<string> ExtractText(HttpResponseMessage res)
@@ -387,6 +445,82 @@ public class GeminiService : IGeminiService
             .GetProperty("content")
             .GetProperty("parts")[0]
             .GetProperty("text")
+            .GetString() ?? string.Empty;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GROQ AI SERVICE  (text-only — dùng cho Chatbot & Meal Plan)
+// Tốc độ ~500 tokens/s nhờ LPU, free tier 14,400 req/ngày
+// ═══════════════════════════════════════════════════════════════
+public interface IGroqService
+{
+    Task<string> GenerateTextAsync(string prompt);
+    Task<string> GenerateChatAsync(string systemPrompt, IEnumerable<(string role, string content)> history, string userMessage);
+}
+
+public class GroqService : IGroqService
+{
+    private readonly HttpClient _http;
+    private readonly string _apiKey;
+    private readonly string _model;
+    private const string BaseUrl = "https://api.groq.com/openai/v1/chat/completions";
+
+    public GroqService(HttpClient http, IConfiguration config)
+    {
+        _http = http;
+        _apiKey = config["GroqApiKey"] ?? throw new InvalidOperationException("GroqApiKey not configured");
+        _model  = config["GroqModel"] ?? "llama-3.3-70b-versatile";
+
+        _http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+    }
+
+    public Task<string> GenerateTextAsync(string prompt)
+        => SendAsync([new { role = "user", content = prompt }]);
+
+    public Task<string> GenerateChatAsync(
+        string systemPrompt,
+        IEnumerable<(string role, string content)> history,
+        string userMessage)
+    {
+        var messages = new List<object>
+        {
+            new { role = "system", content = systemPrompt }
+        };
+        foreach (var (role, content) in history)
+            messages.Add(new { role, content });
+        messages.Add(new { role = "user", content = userMessage });
+
+        return SendAsync(messages);
+    }
+
+    private async Task<string> SendAsync(IEnumerable<object> messages)
+    {
+        var payload = new
+        {
+            model    = _model,
+            messages = messages,
+            temperature = 0.7,
+            max_tokens  = 2048
+        };
+
+        // Retry tối đa 3 lần khi gặp 429
+        int[] delays = [3000, 8000, 20000];
+        HttpResponseMessage? res = null;
+        for (int i = 0; i <= delays.Length; i++)
+        {
+            res = await _http.PostAsJsonAsync(BaseUrl, payload);
+            if ((int)res.StatusCode != 429 || i == delays.Length) break;
+            await Task.Delay(delays[i]);
+        }
+
+        res!.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+        return doc.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
             .GetString() ?? string.Empty;
     }
 }
@@ -461,7 +595,115 @@ public class FoodScanService : IFoodScanService
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CHATBOT SERVICE (Premium)
+// SEPAY WEBHOOK SERVICE
+// Tự động xác nhận thanh toán khi SePay gửi webhook
+// ═══════════════════════════════════════════════════════════════
+public interface ISePayWebhookService
+{
+    Task<bool> ProcessAsync(SePayWebhookDto payload, string? signature, string rawBody);
+}
+
+public class SePayWebhookService : ISePayWebhookService
+{
+    private readonly EcoCleanDbContext _db;
+    private readonly IConfiguration _config;
+    private readonly ILogger<SePayWebhookService> _logger;
+
+    private static readonly Dictionary<string, (decimal price, int months)> Plans = new()
+    {
+        ["Monthly"] = (49_000m, 1),
+        ["Yearly"]  = (499_000m, 12)
+    };
+
+    public SePayWebhookService(
+        EcoCleanDbContext db,
+        IConfiguration config,
+        ILogger<SePayWebhookService> logger)
+    {
+        _db     = db;
+        _config = config;
+        _logger = logger;
+    }
+
+    public async Task<bool> ProcessAsync(SePayWebhookDto payload, string? signature, string rawBody)
+    {
+        // 1. Chỉ xử lý tiền VÀO
+        if (payload.TransferType != 1)
+            return true;
+
+        // 2. Verify HMAC-SHA256 signature nếu có cấu hình secret
+        var secret = _config["SePay:WebhookSecret"];
+        if (!string.IsNullOrEmpty(secret) && !string.IsNullOrEmpty(signature))
+        {
+            if (!VerifySignature(rawBody, signature, secret))
+            {
+                _logger.LogWarning("SePay webhook: invalid signature");
+                return false;
+            }
+        }
+
+        // 3. Tìm txRef trong nội dung chuyển khoản (format: "ECOCLEAN ECO{userId}{timestamp}")
+        var content = payload.Content?.ToUpper() ?? string.Empty;
+        var sub = await FindPendingSubscriptionAsync(content, payload.TransferAmount);
+
+        if (sub == null)
+        {
+            _logger.LogInformation("SePay webhook: no matching pending subscription for content='{Content}' amount={Amount}",
+                payload.Content, payload.TransferAmount);
+            return true; // Không phải giao dịch của app, bỏ qua
+        }
+
+        // 4. Đã paid rồi thì bỏ qua (idempotent)
+        if (sub.Status == "Paid")
+            return true;
+
+        // 5. Xác nhận thanh toán
+        sub.Status = "Paid";
+        sub.PaidAt = DateTime.UtcNow;
+        sub.ExpiresAt = DateTime.UtcNow.AddMonths(
+            Plans.TryGetValue(sub.Plan, out var p) ? p.months : 1);
+
+        var user = await _db.Users.FindAsync(sub.UserId);
+        if (user != null)
+        {
+            user.IsPremium    = true;
+            user.PremiumExpiry = sub.ExpiresAt;
+            user.Role         = "Premium";
+        }
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("SePay webhook: subscription {SubId} confirmed for user {UserId}, plan={Plan}",
+            sub.Id, sub.UserId, sub.Plan);
+
+        return true;
+    }
+
+    // Tìm subscription pending khớp với nội dung CK và số tiền
+    private async Task<Subscription?> FindPendingSubscriptionAsync(string content, decimal amount)
+    {
+        // Lấy tất cả pending subscriptions có amount khớp (giới hạn 100 để tránh scan toàn bảng)
+        var candidates = await _db.Subscriptions
+            .Where(s => s.Status == "Pending" && s.Amount == amount)
+            .OrderByDescending(s => s.Id)
+            .Take(100)
+            .ToListAsync();
+
+        // Match txRef trong nội dung chuyển khoản
+        return candidates.FirstOrDefault(s =>
+            s.TransactionRef != null &&
+            content.Contains(s.TransactionRef.ToUpper()));
+    }
+
+    private static bool VerifySignature(string rawBody, string signature, string secret)
+    {
+        using var hmac = new System.Security.Cryptography.HMACSHA256(
+            System.Text.Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawBody));
+        var expected = Convert.ToHexString(hash).ToLower();
+        return string.Equals(expected, signature.ToLower(), StringComparison.OrdinalIgnoreCase);
+    }
+}
 // ═══════════════════════════════════════════════════════════════
 public interface IChatbotService
 {
@@ -472,7 +714,7 @@ public interface IChatbotService
 public class ChatbotService : IChatbotService
 {
     private readonly EcoCleanDbContext _db;
-    private readonly IGeminiService _ai;
+    private readonly IGroqService _ai;
 
     private const string SystemContext = """
         Bạn là chuyên gia dinh dưỡng EcoClean AI. Chuyên tư vấn về:
@@ -483,7 +725,7 @@ public class ChatbotService : IChatbotService
         Trả lời ngắn gọn, thực tế, bằng tiếng Việt.
         """;
 
-    public ChatbotService(EcoCleanDbContext db, IGeminiService ai) { _db = db; _ai = ai; }
+    public ChatbotService(EcoCleanDbContext db, IGroqService ai) { _db = db; _ai = ai; }
 
     public async Task<ChatResponseDto> ChatAsync(int userId, ChatMessageDto dto)
     {
@@ -491,16 +733,14 @@ public class ChatbotService : IChatbotService
 
         var history = await _db.ChatHistories
             .Where(c => c.UserId == userId && c.SessionId == sessionId)
-            .OrderBy(c => c.CreatedAt).TakeLast(10).ToListAsync();
+            .OrderByDescending(c => c.CreatedAt)
+            .Take(10)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
 
-        var sb = new System.Text.StringBuilder(SystemContext);
-        sb.AppendLine("\n\nLịch sử hội thoại:");
-        foreach (var h in history)
-            sb.AppendLine($"{(h.Role == "user" ? "Người dùng" : "AI")}: {h.Content}");
-        sb.AppendLine($"\nNgười dùng: {dto.Message}");
-        sb.AppendLine("AI:");
-
-        var reply = await _ai.GenerateTextAsync(sb.ToString());
+        // Dùng GenerateChatAsync để tận dụng native chat format của Groq (nhanh hơn)
+        var historyTuples = history.Select(h => (h.Role, h.Content));
+        var reply = await _ai.GenerateChatAsync(SystemContext, historyTuples, dto.Message);
 
         _db.ChatHistories.AddRange(
             new ChatHistory { UserId = userId, SessionId = sessionId, Role = "user",      Content = dto.Message },
@@ -518,7 +758,66 @@ public class ChatbotService : IChatbotService
 }
 
 // ═══════════════════════════════════════════════════════════════
-// AI MEAL PLAN SERVICE (Premium)
+// RECIPE SUGGESTION SERVICE (Premium)
+// ═══════════════════════════════════════════════════════════════
+public interface IRecipeSuggestionService
+{
+    Task<List<RecipeSuggestionDto>> SuggestFromIngredientAsync(string ingredient);
+}
+
+public class RecipeSuggestionService : IRecipeSuggestionService
+{
+    private readonly IGroqService _ai;
+
+    public RecipeSuggestionService(IGroqService ai) => _ai = ai;
+
+    public async Task<List<RecipeSuggestionDto>> SuggestFromIngredientAsync(string ingredient)
+    {
+        var prompt = string.Format(
+            "Gợi ý 4 món ăn Eat Clean lành mạnh có thể làm từ nguyên liệu chính: \"{0}\".\n\n" +
+            "Trả về JSON duy nhất (không markdown, không giải thích):\n" +
+            "[{{\"dishName\":\"string\",\"description\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0,\"prepTime\":\"string\",\"difficulty\":\"Dễ|Trung bình|Khó\",\"steps\":[\"string\"]}}]\n\n" +
+            "Yêu cầu: món Việt Nam hoặc phổ biến tại Việt Nam, đơn giản, ít dầu mỡ, steps tối đa 4 bước ngắn gọn.",
+            ingredient);
+
+        var raw = await _ai.GenerateTextAsync(prompt);
+
+        try
+        {
+            var clean = raw.Trim();
+            // Strip markdown code block nếu có
+            if (clean.StartsWith("```")) clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^```[a-z]*\s*", "").TrimEnd('`').Trim();
+
+            using var doc = JsonDocument.Parse(clean);
+            var list = new List<RecipeSuggestionDto>();
+
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                list.Add(new RecipeSuggestionDto(
+                    DishName:    item.TryGetProperty("dishName",    out var dn) ? dn.GetString() ?? "" : "",
+                    Description: item.TryGetProperty("description", out var ds) ? ds.GetString() ?? "" : "",
+                    Calories:    item.TryGetProperty("calories",    out var c)  ? (int)c.GetDouble()   : 0,
+                    Protein:     item.TryGetProperty("protein",     out var p)  ? p.GetDouble()        : 0,
+                    Carb:        item.TryGetProperty("carb",        out var ca) ? ca.GetDouble()       : 0,
+                    Fat:         item.TryGetProperty("fat",         out var f)  ? f.GetDouble()        : 0,
+                    PrepTime:    item.TryGetProperty("prepTime",    out var pt) ? pt.GetString() ?? "" : "",
+                    Difficulty:  item.TryGetProperty("difficulty",  out var d)  ? d.GetString()  ?? "" : "",
+                    Steps:       item.TryGetProperty("steps",       out var st)
+                                    ? st.EnumerateArray().Select(s => s.GetString() ?? "").ToArray()
+                                    : []
+                ));
+            }
+            return list;
+        }
+        catch
+        {
+            return [];
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AI MEAL PLAN SERVICE (Premium) — dùng Groq để tăng tốc độ
 // ═══════════════════════════════════════════════════════════════
 public interface IAIMealPlanService
 {
@@ -529,25 +828,33 @@ public interface IAIMealPlanService
 public class AIMealPlanService : IAIMealPlanService
 {
     private readonly EcoCleanDbContext _db;
-    private readonly IGeminiService _ai;
+    private readonly IGroqService _ai;
 
-    public AIMealPlanService(EcoCleanDbContext db, IGeminiService ai) { _db = db; _ai = ai; }
+    private const string MealPlanSystem = """
+        Bạn là chuyên gia dinh dưỡng Eat Clean. Khi được yêu cầu tạo thực đơn,
+        hãy trả về JSON THUẦN TÚY (không markdown, không giải thích, không ```json).
+        Chỉ trả về object JSON hợp lệ theo đúng format được yêu cầu.
+        Ưu tiên món ăn Việt Nam, đơn giản, lành mạnh.
+        """;
+
+    public AIMealPlanService(EcoCleanDbContext db, IGroqService ai) { _db = db; _ai = ai; }
 
     public async Task<AIMealPlanDto> GenerateAsync(int userId, AIMealPlanRequestDto req)
     {
         var profile = await _db.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
         var targetCal = profile == null ? 1800 : profile.DailyCalorieGoal;
 
-        // Use string.Format to avoid interpolation conflicts with JSON braces
-        var prompt = string.Format(
-            "Tạo thực đơn Eat Clean {0} ngày cho mục tiêu: {1}.\n" +
-            "Thông tin: {2} kcal/ngày.\n\n" +
-            "Trả về JSON duy nhất theo format (không có markdown, không giải thích):\n" +
-            "{{\"title\":\"string\",\"days\":[{{\"day\":1,\"breakfast\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"lunch\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"dinner\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"snack\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"totalCalories\":0}}]}}\n\n" +
-            "Món ăn Việt Nam, đơn giản, lành mạnh.",
-            req.DurationDays, req.Goal, targetCal);
+        var foodNote = string.IsNullOrEmpty(req.FoodContext)
+            ? string.Empty
+            : $"\nGợi ý: người dùng quan tâm đến món \"{req.FoodContext}\", hãy tích hợp hoặc gợi ý các món tương tự.";
 
-        var raw = await _ai.GenerateTextAsync(prompt);
+        var userPrompt = string.Format(
+            "Tạo thực đơn Eat Clean {0} ngày cho mục tiêu: {1}. Mục tiêu calories: {2} kcal/ngày.{3}\n\n" +
+            "Format JSON yêu cầu:\n" +
+            "{{\"title\":\"string\",\"days\":[{{\"day\":1,\"breakfast\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"lunch\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"dinner\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"snack\":{{\"name\":\"string\",\"calories\":0,\"protein\":0,\"carb\":0,\"fat\":0}},\"totalCalories\":0}}]}}",
+            req.DurationDays, req.Goal, targetCal, foodNote);
+
+        var raw = await _ai.GenerateChatAsync(MealPlanSystem, [], userPrompt);
 
         var plan = new AIMealPlan
         {

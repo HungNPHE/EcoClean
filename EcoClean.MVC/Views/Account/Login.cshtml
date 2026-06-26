@@ -3,53 +3,65 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="min-vh-100 d-flex align-items-center" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
-    <div class="container">
+<div style="min-height:calc(100vh - 64px);display:flex;align-items:center;background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 50%,#eff6ff 100%)">
+    <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card border-0 shadow-lg rounded-4 p-4">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-leaf-fill text-success display-4"></i>
-                        <h2 class="fw-bold mt-2">Đăng nhập</h2>
-                        <p class="text-muted">Chào mừng trở lại EcoClean</p>
-                    </div>
+            <div class="col-md-5 col-lg-4">
 
+                <!-- Logo -->
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
+                         style="width:56px;height:56px;background:linear-gradient(135deg,#16a34a,#22c55e);box-shadow:0 4px 16px rgba(22,163,74,.35)">
+                        <i class="bi bi-leaf-fill text-white fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1" style="letter-spacing:-0.03em">Chào mừng trở lại</h2>
+                    <p class="text-muted small">Đăng nhập vào tài khoản EcoClean của bạn</p>
+                </div>
+
+                <div class="card border-0 shadow-lg p-4" style="border-radius:20px !important">
                     @if (ViewBag.Error != null)
                     {
-                        <div class="alert alert-danger rounded-3">
-                            <i class="bi bi-exclamation-circle me-2"></i>@ViewBag.Error
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <span>@ViewBag.Error</span>
                         </div>
                     }
 
                     <form method="post" asp-action="Login">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Email</label>
+                            <label class="form-label">Email</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-envelope text-success"></i></span>
-                                <input type="email" name="email" class="form-control" placeholder="email@example.com" required />
+                                <span class="input-group-text"><i class="bi bi-envelope text-success"></i></span>
+                                <input type="email" name="email" class="form-control"
+                                       placeholder="email@example.com" required autocomplete="email" />
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">Mật khẩu</label>
+                            <label class="form-label">Mật khẩu</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-lock text-success"></i></span>
-                                <input type="password" name="password" id="passwordInput" class="form-control" placeholder="••••••••" required />
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                <span class="input-group-text"><i class="bi bi-lock text-success"></i></span>
+                                <input type="password" name="password" id="passwordInput" class="form-control"
+                                       placeholder="••••••••" required autocomplete="current-password" />
+                                <button class="btn btn-outline-secondary border-start-0" type="button"
+                                        onclick="togglePassword()" style="border-left:none">
                                     <i class="bi bi-eye" id="eyeIcon"></i>
                                 </button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold rounded-3">
+                        <button type="submit" class="btn btn-eco w-100 py-2 rounded-pill fw-bold">
                             <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
                         </button>
                     </form>
 
-                    <hr class="my-4" />
-                    <p class="text-center mb-0">
-                        Chưa có tài khoản?
-                        <a asp-controller="Account" asp-action="Register" class="text-success fw-semibold">Đăng ký miễn phí</a>
-                    </p>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <span class="text-muted small">Chưa có tài khoản? </span>
+                        <a asp-controller="Account" asp-action="Register"
+                           class="fw-semibold text-decoration-none" style="color:#16a34a">
+                            Đăng ký miễn phí
+                        </a>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -60,13 +72,8 @@
 function togglePassword() {
     const input = document.getElementById('passwordInput');
     const icon  = document.getElementById('eyeIcon');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.className = 'bi bi-eye-slash';
-    } else {
-        input.type = 'password';
-        icon.className = 'bi bi-eye';
-    }
+    input.type  = input.type === 'password' ? 'text' : 'password';
+    icon.className = input.type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
 }
 </script>
 }

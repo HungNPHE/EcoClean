@@ -7,25 +7,29 @@
     var status = ViewBag.Status as string;
 }
 
-<div class="d-flex gap-2 mb-3 flex-wrap">
-    @foreach (var (lbl, val, color) in new[] {
-        ("Tất cả",    "",         "secondary"),
-        ("Chờ duyệt", "Pending",  "warning"),
-        ("Đã thanh toán","Paid",  "success"),
-        ("Thất bại",  "Failed",   "danger"),
+<!-- Filter tabs -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    @foreach (var (lbl, val, color, bg) in new[] {
+        ("Tất cả",       "",         "#64748b", "rgba(100,116,139,.1)"),
+        ("Chờ duyệt",    "Pending",  "#d97706", "rgba(245,158,11,.1)"),
+        ("Đã thanh toán","Paid",     "#16a34a", "rgba(22,163,74,.1)"),
+        ("Thất bại",     "Failed",   "#dc2626", "rgba(239,68,68,.1)"),
     })
     {
+        var isActive = status == val || (val == "" && status == null);
         <a asp-action="Subscriptions" asp-route-status="@val"
-           class="btn btn-sm btn-@(status == val || (val == "" && status == null) ? color : "outline-" + color) rounded-pill">
+           class="btn btn-sm rounded-pill fw-semibold px-3"
+           style="background:@(isActive ? bg : "transparent");color:@color;border:1.5px solid @(isActive ? color : "#e2e8f0");transition:all .15s">
             @lbl
         </a>
     }
 </div>
 
-<div class="card border-0 shadow-sm rounded-3">
+<!-- Table -->
+<div class="table-card">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 small">
-            <thead class="table-light">
+        <table class="table table-hover mb-0">
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>Người dùng</th>
@@ -55,28 +59,41 @@
                     var uEmail  = userEl?.TryGetProperty("email",    out var ue) == true ? ue.GetString() : "";
                     var uName   = userEl?.TryGetProperty("fullName", out var un) == true ? un.GetString() : "";
 
-                    var badgeColor = st switch { "Paid" => "success", "Pending" => "warning", "Failed" => "danger", _ => "secondary" };
+                    var (stBg, stColor) = st switch {
+                        "Paid"    => ("rgba(34,197,94,.1)",   "#16a34a"),
+                        "Pending" => ("rgba(245,158,11,.1)",  "#d97706"),
+                        "Failed"  => ("rgba(239,68,68,.1)",   "#dc2626"),
+                        _         => ("rgba(100,116,139,.1)", "#64748b")
+                    };
+
                     <tr>
-                        <td class="text-muted">@sid</td>
+                        <td class="text-muted small">#@sid</td>
                         <td>
-                            <div class="fw-semibold">@uName</div>
-                            <div class="text-muted">@uEmail</div>
+                            <div class="fw-semibold small">@uName</div>
+                            <div class="text-muted" style="font-size:.775rem">@uEmail</div>
                         </td>
-                        <td><span class="badge bg-primary-subtle text-primary">@plan</span></td>
-                        <td class="text-end fw-semibold">@amount.ToString("N0")₫</td>
+                        <td>
+                            <span class="badge rounded-pill px-2"
+                                  style="background:rgba(59,130,246,.1);color:#3b82f6;font-size:.75rem">@plan</span>
+                        </td>
+                        <td class="text-end fw-bold small">@amount.ToString("N0")₫</td>
                         <td class="text-center">
-                            <span class="badge bg-@badgeColor-subtle text-@badgeColor">@st</span>
+                            <span class="badge rounded-pill px-2"
+                                  style="background:@stBg;color:@stColor;font-size:.75rem">@st</span>
                         </td>
-                        <td class="text-muted" style="font-size:.75rem">@txRef</td>
-                        <td class="text-muted">@paidAt</td>
-                        <td class="text-muted">@expiry</td>
+                        <td class="text-muted" style="font-size:.75rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                            @txRef
+                        </td>
+                        <td class="text-muted small">@paidAt</td>
+                        <td class="text-muted small">@expiry</td>
                         <td>
                             @if (st == "Pending")
                             {
                                 <form method="post" asp-action="ConfirmSubscription" class="d-inline"
                                       onsubmit="return confirm('Xác nhận thanh toán #@sid?')">
                                     <input type="hidden" name="id" value="@sid" />
-                                    <button class="btn btn-sm btn-success rounded-pill py-0 px-2">
+                                    <button class="btn btn-sm rounded-2 fw-semibold"
+                                            style="background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.2);font-size:.775rem;padding:.3rem .65rem">
                                         <i class="bi bi-check-lg me-1"></i>Duyệt
                                     </button>
                                 </form>
@@ -86,7 +103,12 @@
                 }
                 @if (!subs.Any())
                 {
-                    <tr><td colspan="9" class="text-center text-muted py-4">Không có dữ liệu</td></tr>
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox display-5 d-block mb-2 opacity-25"></i>
+                            Không có dữ liệu
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>

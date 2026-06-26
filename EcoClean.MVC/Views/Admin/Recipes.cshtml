@@ -9,32 +9,55 @@
 <div class="row g-4">
     <!-- Add form -->
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-3 p-4">
-            <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle text-success me-2"></i>Thêm công thức mới</h6>
+        <div class="content-card p-4">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:34px;height:34px;background:rgba(22,163,74,.1);color:#16a34a">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
+                <h6 class="fw-bold mb-0">Thêm công thức mới</h6>
+            </div>
             <form method="post" asp-action="CreateRecipe">
                 <div class="mb-2">
-                    <input name="name" class="form-control form-control-sm rounded-3" placeholder="Tên món *" required />
+                    <label class="form-label">Tên món *</label>
+                    <input name="name" class="form-control" placeholder="Salad rau củ..." required />
                 </div>
                 <div class="mb-2">
-                    <textarea name="description" class="form-control form-control-sm rounded-3" rows="2" placeholder="Mô tả"></textarea>
+                    <label class="form-label">Mô tả</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Mô tả ngắn..."></textarea>
                 </div>
                 <div class="row g-2 mb-2">
                     <div class="col-6">
-                        <input name="calories" type="number" class="form-control form-control-sm rounded-3" placeholder="Calories *" required min="0" />
+                        <label class="form-label">Calories *</label>
+                        <input name="calories" type="number" class="form-control" placeholder="350" required min="0" />
                     </div>
                     <div class="col-6">
-                        <input name="prepTimeMin" type="number" class="form-control form-control-sm rounded-3" placeholder="Thời gian (phút)" min="0" />
+                        <label class="form-label">Thời gian (phút)</label>
+                        <input name="prepTimeMin" type="number" class="form-control" placeholder="30" min="0" />
                     </div>
                 </div>
                 <div class="row g-2 mb-2">
-                    <div class="col-6"><input name="protein" type="number" step="0.1" class="form-control form-control-sm rounded-3" placeholder="Protein (g)" min="0" value="0" /></div>
-                    <div class="col-6"><input name="carb"    type="number" step="0.1" class="form-control form-control-sm rounded-3" placeholder="Carb (g)"    min="0" value="0" /></div>
-                    <div class="col-6"><input name="fat"     type="number" step="0.1" class="form-control form-control-sm rounded-3" placeholder="Fat (g)"     min="0" value="0" /></div>
-                    <div class="col-6"><input name="fiber"   type="number" step="0.1" class="form-control form-control-sm rounded-3" placeholder="Fiber (g)"   min="0" value="0" /></div>
+                    <div class="col-6">
+                        <label class="form-label">Protein (g)</label>
+                        <input name="protein" type="number" step="0.1" class="form-control" placeholder="0" min="0" value="0" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Carb (g)</label>
+                        <input name="carb" type="number" step="0.1" class="form-control" placeholder="0" min="0" value="0" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Fat (g)</label>
+                        <input name="fat" type="number" step="0.1" class="form-control" placeholder="0" min="0" value="0" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Fiber (g)</label>
+                        <input name="fiber" type="number" step="0.1" class="form-control" placeholder="0" min="0" value="0" />
+                    </div>
                 </div>
                 <div class="mb-2">
-                    <select name="category" class="form-select form-select-sm rounded-3" required>
-                        <option value="">-- Danh mục *</option>
+                    <label class="form-label">Danh mục *</label>
+                    <select name="category" class="form-select" required>
+                        <option value="">-- Chọn danh mục</option>
                         <option value="Breakfast">Bữa sáng</option>
                         <option value="Lunch">Bữa trưa</option>
                         <option value="Dinner">Bữa tối</option>
@@ -42,14 +65,27 @@
                         <option value="Drink">Đồ uống</option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <input name="tags" class="form-control form-control-sm rounded-3" placeholder='Tags JSON, vd: ["low-carb"]' />
+                <div class="mb-2">
+                    <label class="form-label">Tags (JSON)</label>
+                    <input name="tags" class="form-control" placeholder='["low-carb","high-protein"]' />
                 </div>
                 <div class="mb-3">
-                    <input name="imageUrl" class="form-control form-control-sm rounded-3" placeholder="URL hình ảnh (tuỳ chọn)" />
+                    <label class="form-label">URL hình ảnh</label>
+                    <input name="imageUrl" class="form-control" placeholder="https://..." />
                 </div>
-                <button type="submit" class="btn btn-success btn-sm w-100 rounded-3">
-                    <i class="bi bi-plus-lg me-1"></i>Thêm
+                <div class="mb-3">
+                    <label class="form-label">Nguyên liệu (mỗi dòng 1 nguyên liệu)</label>
+                    <textarea name="ingredients" class="form-control" rows="4"
+                              placeholder="200g ức gà&#10;1 bát rau xà lách&#10;1 muỗng dầu olive"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Cách làm (mỗi dòng 1 bước)</label>
+                    <textarea name="instructions" class="form-control" rows="5"
+                              placeholder="Bước 1: Ướp gà với muối tiêu&#10;Bước 2: Nướng gà 20 phút"></textarea>
+                </div>
+                <button type="submit" class="btn btn-sm w-100 rounded-3 fw-semibold py-2"
+                        style="background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none">
+                    <i class="bi bi-plus-lg me-1"></i>Thêm công thức
                 </button>
             </form>
         </div>
@@ -57,47 +93,56 @@
 
     <!-- List -->
     <div class="col-md-8">
-        <div class="card border-0 shadow-sm rounded-3">
+        <div class="table-card">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 small">
-                    <thead class="table-light">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
-                            <th>Tên</th>
+                            <th>Tên món</th>
                             <th>Danh mục</th>
                             <th class="text-center">Cal</th>
                             <th class="text-center">P / C / F</th>
-                            <th class="text-center">Trạng thái</th>
                             <th class="text-end">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var r in recipes)
                         {
-                            var rid   = r.TryGetProperty("id",          out var i)  ? i.GetInt32()   : 0;
-                            var rname = r.TryGetProperty("name",        out var n)  ? n.GetString()  : "";
-                            var rdesc = r.TryGetProperty("description", out var de) && de.ValueKind != JsonValueKind.Null ? de.GetString() : "";
-                            var cat   = r.TryGetProperty("category",    out var c)  ? c.GetString()  : "";
-                            var cal   = r.TryGetProperty("calories",    out var ca) ? ca.GetInt32()  : 0;
-                            var prot  = r.TryGetProperty("protein",     out var p)  ? p.GetDouble()  : 0;
-                            var carb  = r.TryGetProperty("carb",        out var cb) ? cb.GetDouble() : 0;
-                            var fat   = r.TryGetProperty("fat",         out var f)  ? f.GetDouble()  : 0;
-                            var fiber = r.TryGetProperty("fiber",       out var fb) ? fb.GetDouble() : 0;
-                            var prep  = r.TryGetProperty("prepTimeMin", out var pt) && pt.ValueKind != JsonValueKind.Null ? (int?)pt.GetInt32() : null;
-                            var tags  = r.TryGetProperty("tags",        out var tg) && tg.ValueKind != JsonValueKind.Null ? tg.GetString() : "";
-                            var imgUrl = r.TryGetProperty("imageUrl",   out var iu) && iu.ValueKind != JsonValueKind.Null ? iu.GetString() : "";
+                            var rid    = r.TryGetProperty("id",          out var i)  ? i.GetInt32()   : 0;
+                            var rname  = r.TryGetProperty("name",        out var n)  ? n.GetString()  : "";
+                            var rdesc  = r.TryGetProperty("description", out var de) && de.ValueKind != JsonValueKind.Null ? de.GetString() : "";
+                            var cat    = r.TryGetProperty("category",    out var c)  ? c.GetString()  : "";
+                            var cal    = r.TryGetProperty("calories",    out var ca) ? ca.GetInt32()  : 0;
+                            var prot   = r.TryGetProperty("protein",     out var p)  ? p.GetDouble()  : 0;
+                            var carb   = r.TryGetProperty("carb",        out var cb) ? cb.GetDouble() : 0;
+                            var fat    = r.TryGetProperty("fat",         out var f)  ? f.GetDouble()  : 0;
+                            var fiber  = r.TryGetProperty("fiber",       out var fb) ? fb.GetDouble() : 0;
+                            var prep   = r.TryGetProperty("prepTimeMin", out var pt) && pt.ValueKind != JsonValueKind.Null ? (int?)pt.GetInt32() : null;
+                            var tags   = r.TryGetProperty("tags",        out var tg) && tg.ValueKind != JsonValueKind.Null ? tg.GetString() : "";
+                            var imgUrl = r.TryGetProperty("imageUrl",    out var iu) && iu.ValueKind != JsonValueKind.Null ? iu.GetString() : "";
 
                             <tr>
-                                <td class="fw-semibold">@rname</td>
-                                <td><span class="badge bg-success-subtle text-success">@cat</span></td>
-                                <td class="text-center">@cal</td>
-                                <td class="text-center text-muted">@prot.ToString("0.0")/@carb.ToString("0.0")/@fat.ToString("0.0")</td>
-                                <td class="text-center">
-                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                <td>
+                                    <div class="fw-semibold small">@rname</div>
+                                    @if (prep.HasValue)
+                                    {
+                                        <div class="text-muted" style="font-size:.75rem">
+                                            <i class="bi bi-clock me-1"></i>@prep phút
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill px-2"
+                                          style="background:rgba(22,163,74,.1);color:#16a34a;font-size:.75rem">@cat</span>
+                                </td>
+                                <td class="text-center fw-bold small" style="color:#16a34a">@cal</td>
+                                <td class="text-center text-muted small">
+                                    @prot.ToString("0")/@carb.ToString("0")/@fat.ToString("0")
                                 </td>
                                 <td class="text-end">
-                                    <!-- Edit button — data stored in data-* to avoid JS quoting issues -->
                                     <button type="button"
-                                            class="btn btn-sm btn-outline-primary rounded-pill me-1 btn-edit"
+                                            class="btn btn-sm rounded-2 me-1 btn-edit fw-semibold"
+                                            style="background:rgba(59,130,246,.1);color:#3b82f6;font-size:.775rem;padding:.3rem .65rem"
                                             data-id="@rid"
                                             data-name="@rname"
                                             data-desc="@rdesc"
@@ -109,12 +154,15 @@
                                             data-fiber="@fiber.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)"
                                             data-prep="@(prep?.ToString() ?? "")"
                                             data-tags="@tags"
-                                            data-imgurl="@imgUrl">
-                                        <i class="bi bi-pencil"></i>
+                                            data-imgurl="@imgUrl"
+                                            data-ingredients="@(r.TryGetProperty("ingredients", out var ingProp) && ingProp.ValueKind != JsonValueKind.Null ? ingProp.GetString() : "")"
+                                            data-instructions="@(r.TryGetProperty("instructions", out var insProp) && insProp.ValueKind != JsonValueKind.Null ? insProp.GetString() : "")">
+                                        <i class="bi bi-pencil me-1"></i>Sửa
                                     </button>
                                     <form method="post" asp-action="DeleteRecipe" class="d-inline">
                                         <input type="hidden" name="id" value="@rid" />
-                                        <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2"
+                                        <button class="btn btn-sm rounded-2 fw-semibold"
+                                                style="background:rgba(239,68,68,.08);color:#dc2626;font-size:.775rem;padding:.3rem .65rem"
                                                 onclick="return confirm('Ẩn công thức này?')">
                                             <i class="bi bi-eye-slash"></i>
                                         </button>
@@ -131,23 +179,25 @@
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content rounded-4 border-0">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-primary me-2"></i>Chỉnh sửa công thức</h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square me-2" style="color:#3b82f6"></i>Chỉnh sửa công thức
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" asp-action="UpdateRecipe" id="editForm">
-                <div class="modal-body">
+                <div class="modal-body px-4">
                     <input type="hidden" name="id" id="edit_id" />
                     <div class="row g-3">
                         <div class="col-md-8">
-                            <label class="form-label small fw-semibold">Tên món *</label>
-                            <input name="name" id="edit_name" class="form-control rounded-3" required />
+                            <label class="form-label">Tên món *</label>
+                            <input name="name" id="edit_name" class="form-control" required />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Danh mục *</label>
-                            <select name="category" id="edit_category" class="form-select rounded-3" required>
+                            <label class="form-label">Danh mục *</label>
+                            <select name="category" id="edit_category" class="form-select" required>
                                 <option value="Breakfast">Bữa sáng</option>
                                 <option value="Lunch">Bữa trưa</option>
                                 <option value="Dinner">Bữa tối</option>
@@ -156,46 +206,58 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold">Mô tả</label>
-                            <textarea name="description" id="edit_desc" class="form-control rounded-3" rows="2"></textarea>
+                            <label class="form-label">Mô tả</label>
+                            <textarea name="description" id="edit_desc" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold">Calories *</label>
-                            <input name="calories" id="edit_cal" type="number" class="form-control rounded-3" required min="0" />
+                            <label class="form-label">Calories *</label>
+                            <input name="calories" id="edit_cal" type="number" class="form-control" required min="0" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold">Thời gian (phút)</label>
-                            <input name="prepTimeMin" id="edit_prep" type="number" class="form-control rounded-3" min="0" />
+                            <label class="form-label">Thời gian (phút)</label>
+                            <input name="prepTimeMin" id="edit_prep" type="number" class="form-control" min="0" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold">Protein (g)</label>
-                            <input name="protein" id="edit_prot" type="number" step="0.1" class="form-control rounded-3" min="0" />
+                            <label class="form-label">Protein (g)</label>
+                            <input name="protein" id="edit_prot" type="number" step="0.1" class="form-control" min="0" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold">Carb (g)</label>
-                            <input name="carb" id="edit_carb" type="number" step="0.1" class="form-control rounded-3" min="0" />
+                            <label class="form-label">Carb (g)</label>
+                            <input name="carb" id="edit_carb" type="number" step="0.1" class="form-control" min="0" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold">Fat (g)</label>
-                            <input name="fat" id="edit_fat" type="number" step="0.1" class="form-control rounded-3" min="0" />
+                            <label class="form-label">Fat (g)</label>
+                            <input name="fat" id="edit_fat" type="number" step="0.1" class="form-control" min="0" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold">Fiber (g)</label>
-                            <input name="fiber" id="edit_fiber" type="number" step="0.1" class="form-control rounded-3" min="0" />
+                            <label class="form-label">Fiber (g)</label>
+                            <input name="fiber" id="edit_fiber" type="number" step="0.1" class="form-control" min="0" />
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold">Tags (JSON)</label>
-                            <input name="tags" id="edit_tags" class="form-control rounded-3" placeholder='["low-carb","high-protein"]' />
+                            <label class="form-label">Tags (JSON)</label>
+                            <input name="tags" id="edit_tags" class="form-control" placeholder='["low-carb","high-protein"]' />
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold">URL hình ảnh</label>
-                            <input name="imageUrl" id="edit_imgurl" class="form-control rounded-3" placeholder="https://..." />
+                            <label class="form-label">URL hình ảnh</label>
+                            <input name="imageUrl" id="edit_imgurl" class="form-control" placeholder="https://..." />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Nguyên liệu (mỗi dòng 1 nguyên liệu)</label>
+                            <textarea name="ingredients" id="edit_ingredients" class="form-control" rows="4"
+                                      placeholder="200g ức gà&#10;1 bát rau xà lách..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Cách làm (mỗi dòng 1 bước)</label>
+                            <textarea name="instructions" id="edit_instructions" class="form-control" rows="5"
+                                      placeholder="Bước 1: ...&#10;Bước 2: ..."></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sm rounded-pill px-4 fw-semibold"
+                            style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none">
                         <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
                     </button>
                 </div>
@@ -221,6 +283,16 @@ document.querySelectorAll('.btn-edit').forEach(btn => {
         document.getElementById('edit_tags').value     = d.tags;
         document.getElementById('edit_imgurl').value   = d.imgurl;
         document.getElementById('edit_category').value = d.cat;
+        // Ingredients: JSON array → mỗi dòng 1 nguyên liệu
+        try {
+            const ings = d.ingredients ? JSON.parse(d.ingredients) : [];
+            document.getElementById('edit_ingredients').value = ings.join('\n');
+        } catch { document.getElementById('edit_ingredients').value = ''; }
+        // Instructions: JSON array → mỗi dòng 1 bước
+        try {
+            const insts = d.instructions ? JSON.parse(d.instructions) : [];
+            document.getElementById('edit_instructions').value = insts.join('\n');
+        } catch { document.getElementById('edit_instructions').value = ''; }
         new bootstrap.Modal(document.getElementById('editModal')).show();
     });
 });

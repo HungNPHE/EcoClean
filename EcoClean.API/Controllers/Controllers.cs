@@ -11,11 +11,21 @@ namespace EcoClean.API.Controllers;
 [Route("api/[controller]")]
 public abstract class BaseController : ControllerBase
 {
+    private const int FreeTrialLimit = 10;
+
     protected int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     protected bool IsPremium => bool.Parse(User.FindFirstValue("IsPremium") ?? "false");
+    protected int FreeTrialUsed => int.TryParse(User.FindFirstValue("FreeTrialUsed"), out var v) ? v : 0;
+
+    // True nếu user có quyền dùng premium (đã mua hoặc còn lượt free trial)
+    protected bool CanUsePremium => IsPremium || FreeTrialUsed < FreeTrialLimit;
 
     protected IActionResult PremiumRequired()
-        => Forbid("Premium subscription required");
+        => StatusCode(403, new {
+            error = "Premium required",
+            freeTrialUsed = FreeTrialUsed,
+            freeTrialLimit = FreeTrialLimit
+        });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -174,19 +184,26 @@ public class SubscriptionController : BaseController
 public class FoodScanController : BaseController
 {
     private readonly IFoodScanService _svc;
-    public FoodScanController(IFoodScanService svc) => _svc = svc;
+    private readonly IFreeTrialService _trial;
+    public FoodScanController(IFoodScanService svc, IFreeTrialService trial) { _svc = svc; _trial = trial; }
 
     [HttpPost]
     public async Task<IActionResult> Scan([FromBody] string base64Image)
     {
-        if (!IsPremium) return PremiumRequired();
-        return Ok(await _svc.ScanAsync(UserId, base64Image));
+        if (!IsPremium)
+        {
+            var (allowed, newToken) = await _trial.ConsumeAsync(UserId);
+            if (!allowed) return PremiumRequired();
+            var result = await _svc.ScanAsync(UserId, base64Image);
+            return Ok(new { data = result, newToken, freeTrialUsed = FreeTrialUsed + 1, freeTrialLimit = FreeTrialService.Limit });
+        }
+        return Ok(new { data = await _svc.ScanAsync(UserId, base64Image), newToken = (string?)null });
     }
 
     [HttpGet("history")]
     public async Task<IActionResult> History([FromQuery] int page = 1)
     {
-        if (!IsPremium) return PremiumRequired();
+        if (!CanUsePremium) return PremiumRequired();
         return Ok(await _svc.GetHistoryAsync(UserId, page));
     }
 }
@@ -199,19 +216,26 @@ public class FoodScanController : BaseController
 public class ChatController : BaseController
 {
     private readonly IChatbotService _svc;
-    public ChatController(IChatbotService svc) => _svc = svc;
+    private readonly IFreeTrialService _trial;
+    public ChatController(IChatbotService svc, IFreeTrialService trial) { _svc = svc; _trial = trial; }
 
     [HttpPost]
     public async Task<IActionResult> Chat([FromBody] ChatMessageDto dto)
     {
-        if (!IsPremium) return PremiumRequired();
-        return Ok(await _svc.ChatAsync(UserId, dto));
+        if (!IsPremium)
+        {
+            var (allowed, newToken) = await _trial.ConsumeAsync(UserId);
+            if (!allowed) return PremiumRequired();
+            var result = await _svc.ChatAsync(UserId, dto);
+            return Ok(new { data = result, newToken, freeTrialUsed = FreeTrialUsed + 1, freeTrialLimit = FreeTrialService.Limit });
+        }
+        return Ok(new { data = await _svc.ChatAsync(UserId, dto), newToken = (string?)null });
     }
 
     [HttpGet("session/{sessionId}")]
     public async Task<IActionResult> GetSession(string sessionId)
     {
-        if (!IsPremium) return PremiumRequired();
+        if (!CanUsePremium) return PremiumRequired();
         return Ok(await _svc.GetSessionAsync(UserId, sessionId));
     }
 }
@@ -224,19 +248,97 @@ public class ChatController : BaseController
 public class AIMealPlanController : BaseController
 {
     private readonly IAIMealPlanService _svc;
-    public AIMealPlanController(IAIMealPlanService svc) => _svc = svc;
+    private readonly IFreeTrialService _trial;
+    public AIMealPlanController(IAIMealPlanService svc, IFreeTrialService trial) { _svc = svc; _trial = trial; }
 
     [HttpPost]
     public async Task<IActionResult> Generate([FromBody] AIMealPlanRequestDto dto)
     {
-        if (!IsPremium) return PremiumRequired();
-        return Ok(await _svc.GenerateAsync(UserId, dto));
+        if (!IsPremium)
+        {
+            var (allowed, newToken) = await _trial.ConsumeAsync(UserId);
+            if (!allowed) return PremiumRequired();
+            var result = await _svc.GenerateAsync(UserId, dto);
+            return Ok(new { data = result, newToken, freeTrialUsed = FreeTrialUsed + 1, freeTrialLimit = FreeTrialService.Limit });
+        }
+        return Ok(new { data = await _svc.GenerateAsync(UserId, dto), newToken = (string?)null });
     }
 
     [HttpGet("history")]
     public async Task<IActionResult> History()
     {
-        if (!IsPremium) return PremiumRequired();
+        if (!CanUsePremium) return PremiumRequired();
         return Ok(await _svc.GetHistoryAsync(UserId));
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RECIPE SUGGESTION (Premium)
+// ═══════════════════════════════════════════════════════════════
+[Authorize]
+[Route("api/recipesuggestion")]
+public class RecipeSuggestionController : BaseController
+{
+    private readonly IRecipeSuggestionService _svc;
+    private readonly IFreeTrialService _trial;
+    public RecipeSuggestionController(IRecipeSuggestionService svc, IFreeTrialService trial) { _svc = svc; _trial = trial; }
+
+    [HttpGet]
+    public async Task<IActionResult> Suggest([FromQuery] string ingredient)
+    {
+        if (string.IsNullOrWhiteSpace(ingredient))
+            return BadRequest(new { error = "Thiếu tên nguyên liệu" });
+
+        if (!IsPremium)
+        {
+            var (allowed, newToken) = await _trial.ConsumeAsync(UserId);
+            if (!allowed) return PremiumRequired();
+            var result = await _svc.SuggestFromIngredientAsync(ingredient);
+            return Ok(new { data = result, newToken, freeTrialUsed = FreeTrialUsed + 1, freeTrialLimit = FreeTrialService.Limit });
+        }
+        return Ok(new { data = await _svc.SuggestFromIngredientAsync(ingredient), newToken = (string?)null });
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEPAY WEBHOOK  (không cần auth — SePay gọi trực tiếp)
+// Endpoint: POST /api/payment/webhook
+// ═══════════════════════════════════════════════════════════════
+[Route("api/payment")]
+[ApiController]
+public class PaymentController : ControllerBase
+{
+    private readonly ISePayWebhookService _svc;
+    private readonly ILogger<PaymentController> _logger;
+
+    public PaymentController(ISePayWebhookService svc, ILogger<PaymentController> logger)
+    {
+        _svc    = svc;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// SePay gọi endpoint này khi có giao dịch mới.
+    /// Cấu hình URL này trong dashboard SePay: https://yourdomain.com/api/payment/webhook
+    /// </summary>
+    [HttpPost("webhook")]
+    public async Task<IActionResult> SePayWebhook(
+        [FromBody] SePayWebhookDto payload,
+        [FromHeader(Name = "X-SePay-Signature")] string? signature)
+    {
+        // Đọc raw body để verify signature
+        Request.Body.Position = 0;
+        using var reader = new System.IO.StreamReader(Request.Body);
+        var rawBody = await reader.ReadToEndAsync();
+
+        _logger.LogInformation("SePay webhook received: amount={Amount} content='{Content}'",
+            payload.TransferAmount, payload.Content);
+
+        var ok = await _svc.ProcessAsync(payload, signature, rawBody);
+
+        // SePay yêu cầu trả về {"success": true} để xác nhận đã nhận
+        return ok
+            ? Ok(new { success = true })
+            : BadRequest(new { success = false, error = "Invalid signature" });
     }
 }

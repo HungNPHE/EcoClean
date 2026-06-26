@@ -1,109 +1,430 @@
 @{
-    ViewData["Title"] = "EcoClean – Healthy Eat Clean";
+    ViewData["Title"] = "EcoClean – AI Nutrition Platform";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var isLoggedIn = Context.Request.Cookies.ContainsKey("ecoclean_token");
 }
 
-<!-- Hero -->
-<section class="hero-section py-5" style="background: linear-gradient(135deg, #1a6b2e 0%, #2d9e4e 100%);">
-    <div class="container text-white text-center py-5">
-        <i class="bi bi-leaf-fill display-2 mb-3"></i>
-        <h1 class="display-4 fw-bold">EcoClean</h1>
-        <p class="lead mb-4">Hệ thống quản lý chế độ ăn Eat Clean thông minh<br>Cá nhân hóa bởi AI, theo dõi sức khỏe mỗi ngày</p>
-        <a asp-controller="Account" asp-action="Register" class="btn btn-warning btn-lg me-3 fw-bold">
-            <i class="bi bi-rocket-takeoff me-2"></i>Bắt đầu miễn phí
-        </a>
-        <a asp-controller="Recipe" asp-action="Index" class="btn btn-outline-light btn-lg">
-            <i class="bi bi-book me-2"></i>Xem công thức
-        </a>
+<style>
+@@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+@@keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@@keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@@keyframes scanLine { 0%{top:0} 100%{top:100%} }
+@@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+.hero-animate { animation:fadeUp .7s ease both; }
+.hero-animate-2 { animation:fadeUp .7s .15s ease both; }
+.hero-animate-3 { animation:fadeUp .7s .3s ease both; }
+.scan-demo { position:relative; overflow:hidden; border-radius:20px; }
+.scan-line {
+    position:absolute; left:0; width:100%; height:3px;
+    background:linear-gradient(90deg,transparent,#4ade80,transparent);
+    animation:scanLine 2s ease-in-out infinite alternate;
+    box-shadow:0 0 12px #4ade80;
+}
+</style>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- HERO — AI Food Scan nhân vật chính                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="position-relative overflow-hidden" style="min-height:95vh;display:flex;align-items:center;background:#080e1a">
+
+    <!-- BG grid -->
+    <div class="position-absolute w-100 h-100" style="background-image:linear-gradient(rgba(34,197,94,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.05) 1px,transparent 1px);background-size:60px 60px"></div>
+    <!-- Glow green top-right -->
+    <div class="position-absolute" style="width:700px;height:700px;background:radial-gradient(circle,rgba(34,197,94,.2) 0%,transparent 65%);top:-180px;right:-180px;pointer-events:none"></div>
+    <!-- Glow blue bottom-left -->
+    <div class="position-absolute" style="width:500px;height:500px;background:radial-gradient(circle,rgba(14,165,233,.15) 0%,transparent 65%);bottom:-80px;left:-80px;pointer-events:none"></div>
+
+    <div class="container position-relative py-5">
+        <div class="row align-items-center g-5">
+
+            <!-- LEFT -->
+            <div class="col-lg-6">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4 hero-animate"
+                     style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25)">
+                    <span class="rounded-circle" style="width:7px;height:7px;background:#4ade80;box-shadow:0 0 8px #4ade80;display:inline-block;animation:pulse-dot 2s infinite"></span>
+                    <span class="fw-semibold" style="color:#4ade80;font-size:.8rem;letter-spacing:.05em">CHỤP ẢNH → BIẾT NGAY DINH DƯỠNG</span>
+                </div>
+
+                <h1 class="fw-bold mb-3 hero-animate-2" style="font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.1;letter-spacing:-0.04em;color:white">
+                    Quét ảnh món ăn,<br>
+                    <span style="background:linear-gradient(90deg,#4ade80,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">AI tính calories ngay</span>
+                </h1>
+
+                <p class="mb-4 hero-animate-3" style="color:rgba(255,255,255,.62);font-size:1.08rem;line-height:1.75;max-width:480px">
+                    Chỉ cần chụp ảnh bất kỳ món ăn — AI sẽ nhận diện và phân tích đầy đủ <strong style="color:white">calories, protein, carb, fat</strong> trong vài giây. Hoàn toàn miễn phí 10 lần đầu.
+                </p>
+
+                <!-- CTA chính -->
+                <div class="d-flex flex-wrap gap-3 mb-5 hero-animate-3">
+                    <a asp-controller="Premium" asp-action="Scan"
+                       class="btn btn-lg fw-bold px-5 py-3 rounded-pill d-flex align-items-center gap-2"
+                       style="background:linear-gradient(135deg,#16a34a,#22c55e);color:white;box-shadow:0 8px 32px rgba(34,197,94,.4);border:none;font-size:1rem">
+                        <i class="bi bi-camera-fill fs-5"></i>
+                        Quét ảnh ngay — Miễn phí
+                    </a>
+                    @if (!isLoggedIn)
+                    {
+                        <a asp-controller="Account" asp-action="Register"
+                           class="btn btn-lg fw-semibold px-4 py-3 rounded-pill"
+                           style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15)">
+                            <i class="bi bi-person-plus me-2"></i>Đăng ký miễn phí
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Dashboard" asp-action="Index"
+                           class="btn btn-lg fw-semibold px-4 py-3 rounded-pill"
+                           style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15)">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                    }
+                </div>
+
+                <!-- Free trial indicator -->
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3 hero-animate-3"
+                     style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);max-width:420px">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:38px;height:38px;background:rgba(34,197,94,.15)">
+                        <i class="bi bi-gift-fill" style="color:#4ade80;font-size:1rem"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="color:white;font-size:.88rem">10 lượt dùng thử miễn phí</div>
+                        <div style="color:rgba(255,255,255,.5);font-size:.78rem">Không cần thẻ tín dụng · Đăng ký ngay để bắt đầu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: AI Scan Demo -->
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                <div class="position-relative" style="width:440px;height:500px">
+
+                    <!-- Phone frame -->
+                    <div class="position-absolute rounded-4 overflow-hidden scan-demo"
+                         style="width:280px;height:360px;top:40px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12);box-shadow:0 32px 80px rgba(0,0,0,.5)">
+                        <!-- Scan line animation -->
+                        <div class="scan-line"></div>
+                        <!-- Food image placeholder -->
+                        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4" style="gap:12px">
+                            <div class="rounded-3 d-flex align-items-center justify-content-center"
+                                 style="width:100px;height:100px;background:rgba(34,197,94,.1);border:2px dashed rgba(34,197,94,.4)">
+                                <i class="bi bi-camera-fill" style="font-size:2.8rem;color:rgba(34,197,94,.6)"></i>
+                            </div>
+                            <!-- Scan result card -->
+                            <div class="rounded-3 p-3 w-100" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;background:#4ade80;flex-shrink:0">
+                                        <i class="bi bi-check text-white" style="font-size:.65rem"></i>
+                                    </span>
+                                    <span class="fw-bold text-white" style="font-size:.85rem">Cơm tấm sườn nướng</span>
+                                    <span class="ms-auto" style="color:rgba(255,255,255,.4);font-size:.7rem">92%</span>
+                                </div>
+                                <div class="row g-1 text-center">
+                                    @foreach (var (lbl, val, color) in new[] {
+                                        ("Cal","650","#f59e0b"),
+                                        ("P","35g","#ef4444"),
+                                        ("C","80g","#f59e0b"),
+                                        ("F","22g","#38bdf8")
+                                    })
+                                    {
+                                        <div class="col-3">
+                                            <div class="rounded-2 p-1" style="background:rgba(255,255,255,.04)">
+                                                <div class="fw-bold" style="color:@color;font-size:.8rem">@val</div>
+                                                <div style="color:rgba(255,255,255,.35);font-size:.62rem">@lbl</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating badge: AI processing -->
+                    <div class="position-absolute rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                         style="background:rgba(8,14,26,.92);border:1px solid rgba(74,222,128,.35);top:10px;right:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:float1 3s ease-in-out infinite">
+                        <div class="spinner-border spinner-border-sm" style="color:#4ade80;width:14px;height:14px;border-width:2px"></div>
+                        <div>
+                            <div class="fw-bold text-white" style="font-size:.72rem">AI đang phân tích</div>
+                            <div style="color:rgba(255,255,255,.4);font-size:.62rem">Gemini Vision</div>
+                        </div>
+                    </div>
+
+                    <!-- Floating badge: result -->
+                    <div class="position-absolute rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                         style="background:rgba(8,14,26,.92);border:1px solid rgba(34,211,238,.3);bottom:20px;left:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:float2 3.5s ease-in-out infinite">
+                        <i class="bi bi-check-circle-fill" style="color:#4ade80;font-size:1.1rem"></i>
+                        <div>
+                            <div class="fw-bold text-white" style="font-size:.72rem">Thêm vào lịch ăn</div>
+                            <div style="color:rgba(255,255,255,.4);font-size:.62rem">1 click · Tự động</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom fade -->
+    <div class="position-absolute bottom-0 start-0 w-100" style="height:80px;background:linear-gradient(transparent,#f8fafc);pointer-events:none"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- HOW IT WORKS                                              -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section style="padding:5rem 0;background:#f8fafc">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="d-inline-block px-3 py-1 rounded-pill mb-3"
+                 style="background:rgba(22,163,74,.1);color:#16a34a;font-size:.8rem;font-weight:700;letter-spacing:.05em">
+                CÁCH HOẠT ĐỘNG
+            </div>
+            <h2 class="fw-bold mb-2" style="font-size:2rem;letter-spacing:-0.03em">Chỉ 3 bước đơn giản</h2>
+            <p class="text-muted">Từ ảnh món ăn đến dữ liệu dinh dưỡng đầy đủ</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            @foreach (var (step, icon, color, bg, title, desc) in new[] {
+                ("1","bi-camera-fill",   "#f59e0b","rgba(245,158,11,.1)", "Chụp ảnh",         "Chụp bất kỳ món ăn nào bằng điện thoại hoặc upload ảnh có sẵn."),
+                ("2","bi-cpu-fill",      "#22c55e","rgba(34,197,94,.1)",  "AI phân tích",      "Gemini Vision AI nhận diện món ăn và tính toán đầy đủ giá trị dinh dưỡng."),
+                ("3","bi-calendar-check","#3b82f6","rgba(59,130,246,.1)", "Thêm vào lịch ăn", "Một click để thêm vào lịch ăn hàng ngày và theo dõi tiến trình."),
+            })
+            {
+                <div class="col-md-4">
+                    <div class="text-center p-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 position-relative"
+                             style="width:72px;height:72px;background:@bg">
+                            <i class="bi @icon" style="font-size:1.8rem;color:@color"></i>
+                            <span class="position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                  style="width:24px;height:24px;background:@color;color:white;font-size:.72rem">@step</span>
+                        </div>
+                        <h5 class="fw-bold mb-2">@title</h5>
+                        <p class="text-muted small mb-0" style="line-height:1.7">@desc</p>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="text-center mt-4">
+            <a asp-controller="Premium" asp-action="Scan"
+               class="btn btn-lg fw-bold px-5 py-3 rounded-pill"
+               style="background:linear-gradient(135deg,#16a34a,#22c55e);color:white;box-shadow:0 6px 24px rgba(34,197,94,.35);border:none">
+                <i class="bi bi-camera-fill me-2"></i>Thử ngay — Miễn phí 10 lần
+            </a>
+        </div>
     </div>
 </section>
 
-<!-- Features -->
-<section class="py-5 bg-light">
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- FEATURES                                                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section style="padding:5rem 0;background:white">
     <div class="container">
-        <h2 class="text-center fw-bold mb-5">Tính năng nổi bật</h2>
+        <div class="text-center mb-5">
+            <div class="d-inline-block px-3 py-1 rounded-pill mb-3"
+                 style="background:rgba(22,163,74,.1);color:#16a34a;font-size:.8rem;font-weight:700;letter-spacing:.05em">
+                TÍNH NĂNG
+            </div>
+            <h2 class="fw-bold mb-2" style="font-size:2rem;letter-spacing:-0.03em">Mọi thứ bạn cần</h2>
+            <p class="text-muted">Từ tính toán dinh dưỡng đến AI cá nhân hóa</p>
+        </div>
         <div class="row g-4">
+            @foreach (var (icon, color, bg, title, desc, tag) in new[] {
+                ("bi-camera-fill",       "#f59e0b","#fffbeb", "Quét ảnh AI",              "Chụp ảnh → AI nhận diện và tính đầy đủ calories, protein, carb, fat tự động.",          "Thử miễn phí"),
+                ("bi-chat-dots-fill",    "#3b82f6","#eff6ff", "Chatbot dinh dưỡng 24/7",  "Chuyên gia AI trả lời mọi câu hỏi về Eat Clean, gợi ý món ăn theo mục tiêu.",          "Thử miễn phí"),
+                ("bi-robot",             "#16a34a","#f0fdf4", "Thực đơn AI cá nhân hóa",  "AI tạo thực đơn 7-14 ngày theo BMI, TDEE và mục tiêu giảm/tăng/giữ cân.",             "Thử miễn phí"),
+                ("bi-calculator",        "#8b5cf6","#f5f3ff", "Tính BMI & TDEE",           "Tự động tính chỉ số cơ thể và lượng calo cần thiết mỗi ngày.",                        "Miễn phí"),
+                ("bi-calendar-check",    "#0ea5e9","#f0f9ff", "Lịch ăn hàng ngày",        "Lên kế hoạch bữa ăn, theo dõi calories và đảm bảo cân bằng dinh dưỡng.",             "Miễn phí"),
+                ("bi-graph-up-arrow",    "#ef4444","#fff1f2", "Theo dõi cân nặng",        "Ghi lại và xem biểu đồ cân nặng theo thời gian để đánh giá tiến trình.",              "Miễn phí"),
+            })
+            {
+                var isPremiumFeature = tag == "Thử miễn phí";
+                <div class="col-md-4">
+                    <div class="card h-100 p-4 position-relative border-0"
+                         style="border-radius:20px;@(isPremiumFeature ? "background:"+bg+";border:1.5px solid rgba(245,158,11,.2) !important" : "background:#fafafa")">
+                        @if (isPremiumFeature)
+                        {
+                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill px-2 py-1"
+                                  style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.68rem">
+                                <i class="bi bi-gift me-1"></i>@tag
+                            </span>
+                        }
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
+                             style="width:52px;height:52px;background:rgba(0,0,0,.04)">
+                            <i class="bi @icon" style="color:@color;font-size:1.4rem"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">@title</h5>
+                        <p class="text-muted small mb-0" style="line-height:1.7">@desc</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- PRICING                                                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section style="padding:5rem 0;background:#f8fafc">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="d-inline-block px-3 py-1 rounded-pill mb-3"
+                 style="background:rgba(22,163,74,.1);color:#16a34a;font-size:.8rem;font-weight:700;letter-spacing:.05em">
+                GÓI SỬ DỤNG
+            </div>
+            <h2 class="fw-bold mb-2" style="font-size:2rem;letter-spacing:-0.03em">Chọn gói phù hợp</h2>
+            <p class="text-muted">Bắt đầu miễn phí với 10 lượt AI, nâng cấp khi cần</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+
+            <!-- Free -->
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm text-center p-4">
-                    <i class="bi bi-calculator display-4 text-success mb-3"></i>
-                    <h5 class="fw-bold">Tính BMI & TDEE</h5>
-                    <p class="text-muted">Tự động tính chỉ số cơ thể và lượng calo cần thiết mỗi ngày theo mục tiêu của bạn.</p>
+                <div class="card h-100 p-4 border-0" style="border-radius:20px;background:white;box-shadow:0 2px 16px rgba(0,0,0,.06)">
+                    <div class="mb-4">
+                        <div class="fw-bold text-muted small mb-1 text-uppercase">Miễn phí</div>
+                        <div class="d-flex align-items-end gap-1">
+                            <span class="fw-bold" style="font-size:2.8rem;letter-spacing:-0.04em">0đ</span>
+                            <span class="text-muted mb-2">/mãi mãi</span>
+                        </div>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        @foreach (var (item, highlight) in new[] {
+                            ("Tính BMI & TDEE cá nhân hóa", false),
+                            ("Thư viện 500+ công thức Eat Clean", false),
+                            ("Lịch ăn uống hàng ngày", false),
+                            ("Theo dõi cân nặng & biểu đồ", false),
+                            ("10 lượt thử tính năng AI miễn phí", true),
+                        })
+                        {
+                            <li class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid #f1f5f9">
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center"
+                                     style="width:20px;height:20px;background:@(highlight ? "rgba(34,197,94,.15)" : "rgba(22,163,74,.08)")">
+                                    <i class="bi bi-check" style="font-size:.7rem;color:#16a34a"></i>
+                                </div>
+                                <span class="small @(highlight ? "fw-semibold" : "")">@item
+                                    @if (highlight) { <span class="badge rounded-pill ms-1" style="background:rgba(34,197,94,.1);color:#16a34a;font-size:.62rem">Mới</span> }
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                    <a asp-controller="Account" asp-action="Register"
+                       class="btn w-100 py-2 rounded-pill fw-semibold" style="border:1.5px solid #16a34a;color:#16a34a">
+                        Đăng ký miễn phí
+                    </a>
                 </div>
             </div>
+
+            <!-- Premium tháng -->
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm text-center p-4">
-                    <i class="bi bi-calendar-check display-4 text-primary mb-3"></i>
-                    <h5 class="fw-bold">Lịch ăn uống</h5>
-                    <p class="text-muted">Lên kế hoạch bữa ăn hàng ngày, theo dõi calories tiêu thụ và đảm bảo dinh dưỡng cân bằng.</p>
+                <div class="card h-100 p-4 position-relative overflow-hidden border-0"
+                     style="border-radius:20px;background:linear-gradient(160deg,#fffbeb,#fff);box-shadow:0 8px 32px rgba(245,158,11,.2);border:1.5px solid rgba(245,158,11,.3) !important">
+                    <div class="position-absolute top-0 end-0 px-3 py-1"
+                         style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.72rem;font-weight:700;border-radius:0 20px 0 12px">
+                        PHỔ BIẾN NHẤT
+                    </div>
+                    <div class="mb-4">
+                        <div class="fw-bold small mb-1 text-uppercase" style="color:#d97706">Premium Tháng</div>
+                        <div class="d-flex align-items-end gap-1">
+                            <span class="fw-bold" style="font-size:2.8rem;letter-spacing:-0.04em;color:#d97706">49.000đ</span>
+                            <span class="text-muted mb-2">/tháng</span>
+                        </div>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        @foreach (var (item, isAi) in new[] {
+                            ("Tất cả tính năng miễn phí", false),
+                            ("Quét ảnh AI không giới hạn", true),
+                            ("Chatbot dinh dưỡng 24/7", true),
+                            ("Thực đơn AI 7-14 ngày", true),
+                        })
+                        {
+                            <li class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid rgba(245,158,11,.15)">
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center"
+                                     style="width:20px;height:20px;background:rgba(245,158,11,.15)">
+                                    <i class="bi bi-check" style="font-size:.7rem;color:#d97706"></i>
+                                </div>
+                                <span class="small">@item</span>
+                                @if (isAi) { <span class="badge rounded-pill ms-auto" style="background:rgba(245,158,11,.1);color:#d97706;font-size:.62rem">AI</span> }
+                            </li>
+                        }
+                    </ul>
+                    <a asp-controller="Premium" asp-action="Payment"
+                       class="btn w-100 py-2 rounded-pill fw-bold"
+                       style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;box-shadow:0 4px 16px rgba(245,158,11,.4)">
+                        <i class="bi bi-stars me-2"></i>Nâng cấp ngay
+                    </a>
                 </div>
             </div>
+
+            <!-- Premium năm -->
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm text-center p-4">
-                    <i class="bi bi-graph-up display-4 text-info mb-3"></i>
-                    <h5 class="fw-bold">Theo dõi cân nặng</h5>
-                    <p class="text-muted">Ghi lại và theo dõi sự thay đổi cân nặng theo thời gian với biểu đồ trực quan.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm text-center p-4 position-relative">
-                    <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Premium</span>
-                    <i class="bi bi-camera display-4 text-warning mb-3"></i>
-                    <h5 class="fw-bold">Quét ảnh thực phẩm</h5>
-                    <p class="text-muted">AI nhận diện món ăn từ ảnh và ước tính calories, protein, carb, fat tự động.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm text-center p-4 position-relative">
-                    <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Premium</span>
-                    <i class="bi bi-chat-dots display-4 text-warning mb-3"></i>
-                    <h5 class="fw-bold">Chatbot dinh dưỡng 24/7</h5>
-                    <p class="text-muted">Tư vấn dinh dưỡng, gợi ý món ăn và giải đáp mọi câu hỏi về Eat Clean bất cứ lúc nào.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm text-center p-4 position-relative">
-                    <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">Premium</span>
-                    <i class="bi bi-robot display-4 text-warning mb-3"></i>
-                    <h5 class="fw-bold">Thực đơn AI cá nhân hóa</h5>
-                    <p class="text-muted">AI tạo thực đơn 7 ngày phù hợp với BMI, TDEE và mục tiêu sức khỏe của bạn.</p>
+                <div class="card h-100 p-4 position-relative overflow-hidden border-0"
+                     style="border-radius:20px;background:linear-gradient(160deg,#f5f3ff,#fff);box-shadow:0 4px 20px rgba(124,58,237,.12);border:1.5px solid rgba(124,58,237,.2) !important">
+                    <div class="position-absolute top-0 end-0 px-3 py-1"
+                         style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;font-size:.72rem;font-weight:700;border-radius:0 20px 0 12px">
+                        TIẾT KIỆM 15%
+                    </div>
+                    <div class="mb-4">
+                        <div class="fw-bold small mb-1 text-uppercase" style="color:#7c3aed">Premium Năm</div>
+                        <div class="d-flex align-items-end gap-1">
+                            <span class="fw-bold" style="font-size:2.8rem;letter-spacing:-0.04em;color:#7c3aed">499.000đ</span>
+                            <span class="text-muted mb-2">/năm</span>
+                        </div>
+                        <div class="text-muted small">~41.600đ/tháng</div>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        @foreach (var item in new[] {
+                            "Tất cả tính năng Premium",
+                            "Ưu tiên hỗ trợ 24/7",
+                            "Tiết kiệm hơn gói tháng",
+                            "Truy cập tính năng mới sớm nhất",
+                        })
+                        {
+                            <li class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid rgba(124,58,237,.12)">
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center"
+                                     style="width:20px;height:20px;background:rgba(124,58,237,.1)">
+                                    <i class="bi bi-check" style="font-size:.7rem;color:#7c3aed"></i>
+                                </div>
+                                <span class="small">@item</span>
+                            </li>
+                        }
+                    </ul>
+                    <a asp-controller="Premium" asp-action="Payment"
+                       class="btn w-100 py-2 rounded-pill fw-bold"
+                       style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;border:none">
+                        <i class="bi bi-gem me-2"></i>Đăng ký gói năm
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Pricing -->
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center fw-bold mb-5">Gói sử dụng</h2>
-        <div class="row g-4 justify-content-center">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 text-center p-4">
-                    <h4 class="fw-bold">Miễn phí</h4>
-                    <p class="display-5 fw-bold text-success">0đ</p>
-                    <ul class="list-unstyled text-start mb-4">
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tính BMI & TDEE</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Thư viện công thức Eat Clean</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Lịch ăn uống cơ bản</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Theo dõi cân nặng</li>
-                    </ul>
-                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-success w-100">Đăng ký ngay</a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-2 border-warning shadow h-100 text-center p-4 position-relative">
-                    <span class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle">Phổ biến nhất</span>
-                    <h4 class="fw-bold mt-2">Premium</h4>
-                    <p class="display-5 fw-bold text-warning">99.000đ<small class="fs-6 fw-normal text-muted">/tháng</small></p>
-                    <ul class="list-unstyled text-start mb-4">
-                        <li class="py-1"><i class="bi bi-check-circle text-success me-2"></i>Tất cả tính năng miễn phí</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-warning me-2"></i>Quét ảnh phân tích dinh dưỡng</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-warning me-2"></i>Chatbot chuyên gia 24/7</li>
-                        <li class="py-1"><i class="bi bi-check-circle text-warning me-2"></i>Thực đơn AI cá nhân hóa</li>
-                    </ul>
-                    <a asp-controller="Premium" asp-action="Payment" class="btn btn-warning w-100 fw-bold">Nâng cấp ngay</a>
-                </div>
-            </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- CTA FINAL                                                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section style="padding:5rem 0;background:linear-gradient(135deg,#080e1a,#0a1628)">
+    <div class="container text-center">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4"
+             style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25)">
+            <i class="bi bi-camera-fill" style="color:#4ade80"></i>
+            <span style="color:#4ade80;font-size:.82rem;font-weight:700">AI FOOD SCAN</span>
+        </div>
+        <h2 class="fw-bold text-white mb-3" style="font-size:2.2rem;letter-spacing:-0.03em">
+            Bắt đầu quét ảnh ngay hôm nay
+        </h2>
+        <p class="mb-5" style="color:rgba(255,255,255,.6);font-size:1.05rem">
+            10 lượt miễn phí · Không cần thẻ tín dụng · Kết quả trong vài giây
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a asp-controller="Premium" asp-action="Scan"
+               class="btn btn-lg fw-bold px-5 py-3 rounded-pill d-inline-flex align-items-center gap-2"
+               style="background:linear-gradient(135deg,#16a34a,#22c55e);color:white;box-shadow:0 8px 32px rgba(34,197,94,.4);border:none">
+                <i class="bi bi-camera-fill fs-5"></i>Quét ảnh miễn phí
+            </a>
+            @if (!isLoggedIn)
+            {
+                <a asp-controller="Account" asp-action="Register"
+                   class="btn btn-lg fw-semibold px-5 py-3 rounded-pill"
+                   style="background:rgba(255,255,255,.08);color:white;border:1px solid rgba(255,255,255,.2)">
+                    <i class="bi bi-person-plus me-2"></i>Tạo tài khoản
+                </a>
+            }
         </div>
     </div>
 </section>

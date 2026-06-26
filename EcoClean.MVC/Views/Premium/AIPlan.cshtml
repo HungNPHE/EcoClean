@@ -5,33 +5,47 @@
 
 <div class="container py-4">
     <div class="d-flex align-items-center mb-4">
-        <i class="bi bi-robot text-warning fs-2 me-3"></i>
+        <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+             style="width:44px;height:44px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:1.2rem">
+            <i class="bi bi-robot"></i>
+        </div>
         <div>
-            <h2 class="fw-bold mb-0">Thực đơn AI <span class="badge bg-warning text-dark ms-2">Premium</span></h2>
-            <p class="text-muted mb-0">AI tạo thực đơn Eat Clean cá nhân hóa theo mục tiêu của bạn</p>
+            <h2 class="fw-bold mb-0" style="letter-spacing:-0.02em">
+                Thực đơn AI
+                <span class="badge ms-2 align-middle" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.65rem">Premium</span>
+            </h2>
+            <p class="text-muted mb-0 small">AI tạo thực đơn Eat Clean cá nhân hóa theo mục tiêu của bạn</p>
         </div>
     </div>
 
     <div class="row g-4">
         <!-- Config Form -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4">
-                <h5 class="fw-bold mb-4"><i class="bi bi-sliders me-2 text-warning"></i>Thiết lập thực đơn</h5>
+            <div class="card border-0 p-4" style="border-radius:20px !important">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-sliders me-2" style="color:#f59e0b"></i>Thiết lập thực đơn
+                </h5>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Mục tiêu</label>
+                <div class="mb-4">
+                    <label class="form-label">Mục tiêu</label>
                     <div class="d-flex flex-column gap-2">
-                        @foreach (var (val, lbl, icon, color) in new[] {
-                            ("LoseWeight","Giảm cân",     "bi-arrow-down-circle","success"),
-                            ("Maintain",  "Giữ dáng",     "bi-dash-circle",      "primary"),
-                            ("GainWeight","Tăng cân",     "bi-arrow-up-circle",  "danger")
+                        @foreach (var (val, lbl, icon, color, bg) in new[] {
+                            ("LoseWeight","Giảm cân",  "bi-arrow-down-circle","#22c55e","rgba(34,197,94,.08)"),
+                            ("Maintain",  "Giữ dáng",  "bi-dash-circle",      "#3b82f6","rgba(59,130,246,.08)"),
+                            ("GainWeight","Tăng cân",  "bi-arrow-up-circle",  "#ef4444","rgba(239,68,68,.08)")
                         })
                         {
-                            <label class="d-flex align-items-center gap-2 p-2 rounded-3 border cursor-pointer goal-opt"
-                                   style="cursor:pointer">
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 goal-opt"
+                                   style="cursor:pointer;border:1.5px solid #e2e8f0;transition:all .15s"
+                                   onmouseover="this.style.borderColor='@color'"
+                                   onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='#e2e8f0'">
                                 <input type="radio" name="goal" value="@val" class="form-check-input"
-                                       @(val == "LoseWeight" ? "checked" : "") />
-                                <i class="bi @icon text-@color fs-5"></i>
+                                       @(val == "LoseWeight" ? "checked" : "")
+                                       onchange="highlightGoal(this)" />
+                                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                                     style="width:34px;height:34px;background:@bg;color:@color;flex-shrink:0">
+                                    <i class="bi @icon"></i>
+                                </div>
                                 <span class="fw-semibold">@lbl</span>
                             </label>
                         }
@@ -39,17 +53,20 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Số ngày</label>
+                    <label class="form-label">Số ngày</label>
                     <div class="d-flex gap-2">
                         @foreach (var d in new[] { 3, 5, 7, 14 })
                         {
-                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill flex-fill day-btn @(d == 7 ? "active" : "")"
+                            <button type="button"
+                                    class="btn btn-sm rounded-pill flex-fill fw-semibold day-btn @(d == 7 ? "active" : "")"
+                                    style="border:1.5px solid #e2e8f0;@(d == 7 ? "background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border-color:transparent" : "background:transparent;color:#64748b")"
                                     onclick="selectDays(@d, this)">@d ngày</button>
                         }
                     </div>
                 </div>
 
-                <button id="generateBtn" class="btn btn-warning w-100 py-2 fw-bold rounded-3" onclick="generatePlan()">
+                <button id="generateBtn" class="btn btn-premium w-100 py-2 fw-bold rounded-pill"
+                        onclick="generatePlan()">
                     <i class="bi bi-stars me-2"></i>Tạo thực đơn với AI
                 </button>
             </div>
@@ -58,19 +75,26 @@
         <!-- Result -->
         <div class="col-md-8">
             <!-- Placeholder -->
-            <div id="planPlaceholder" class="card border-0 shadow-sm rounded-4 p-5 text-center">
-                <i class="bi bi-calendar-week display-4 text-muted d-block mb-3"></i>
-                <h5 class="text-muted">Chọn mục tiêu và nhấn tạo thực đơn</h5>
-                <p class="text-muted small">AI sẽ tạo thực đơn Eat Clean phù hợp với chỉ số BMI và TDEE của bạn</p>
+            <div id="planPlaceholder" class="card border-0 p-5 text-center" style="border-radius:20px !important">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 mx-auto"
+                     style="width:64px;height:64px;background:rgba(245,158,11,.08)">
+                    <i class="bi bi-calendar-week text-warning" style="font-size:2rem"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Chọn mục tiêu và nhấn tạo thực đơn</h5>
+                <p class="text-muted small mb-0">AI sẽ tạo thực đơn Eat Clean phù hợp với chỉ số BMI và TDEE của bạn</p>
             </div>
 
             <!-- Loading -->
-            <div id="planLoading" class="card border-0 shadow-sm rounded-4 p-5 text-center d-none">
-                <div class="spinner-border text-warning mb-3" style="width:3rem;height:3rem"></div>
+            <div id="planLoading" class="card border-0 p-5 text-center d-none" style="border-radius:20px !important">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 mx-auto"
+                     style="width:64px;height:64px;background:rgba(245,158,11,.1)">
+                    <div class="spinner-border text-warning" style="width:2rem;height:2rem"></div>
+                </div>
                 <h5 class="fw-bold">AI đang tạo thực đơn...</h5>
-                <p class="text-muted">Đang tính toán dinh dưỡng cá nhân hóa cho bạn</p>
-                <div class="progress rounded-pill mt-3" style="height:8px">
-                    <div id="genProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width:0%"></div>
+                <p class="text-muted small">Đang tính toán dinh dưỡng cá nhân hóa cho bạn</p>
+                <div class="progress rounded-pill mt-3" style="height:6px">
+                    <div id="genProgress" class="progress-bar progress-bar-striped progress-bar-animated"
+                         style="width:0%;background:linear-gradient(135deg,#f59e0b,#d97706)"></div>
                 </div>
             </div>
 
@@ -78,7 +102,9 @@
             <div id="planResult" class="d-none">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0" id="planTitle"></h5>
-                    <button class="btn btn-outline-warning btn-sm rounded-pill" onclick="generatePlan()">
+                    <button class="btn btn-sm rounded-pill fw-semibold"
+                            style="background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2)"
+                            onclick="generatePlan()">
                         <i class="bi bi-arrow-repeat me-1"></i>Tạo lại
                     </button>
                 </div>
@@ -94,9 +120,28 @@ let selectedDays = 7;
 
 function selectDays(d, btn) {
     selectedDays = d;
-    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    document.querySelectorAll('.day-btn').forEach(b => {
+        b.style.background = 'transparent';
+        b.style.color = '#64748b';
+        b.style.borderColor = '#e2e8f0';
+    });
+    btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+    btn.style.color = 'white';
+    btn.style.borderColor = 'transparent';
 }
+
+function highlightGoal(input) {
+    document.querySelectorAll('.goal-opt').forEach(l => {
+        l.style.borderColor = '#e2e8f0';
+        l.style.background = 'transparent';
+    });
+    const label = input.closest('.goal-opt');
+    label.style.borderColor = '#f59e0b';
+    label.style.background = 'rgba(245,158,11,.04)';
+}
+
+// Highlight default
+document.querySelector('input[name="goal"]:checked')?.dispatchEvent(new Event('change'));
 
 async function generatePlan() {
     const goal = document.querySelector('input[name="goal"]:checked')?.value ?? 'LoseWeight';
@@ -115,7 +160,12 @@ async function generatePlan() {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ goal, durationDays: selectedDays })
         });
-        const data = await res.json();
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: `Lỗi server (${res.status})` }));
+            throw new Error(err.error ?? `Lỗi server (${res.status})`);
+        }
+        const json  = await res.json();
+        const data  = json.data ?? json;  // unwrap {data, newToken} nếu có
         clearInterval(interval);
         prog.style.width = '100%';
 
@@ -152,7 +202,8 @@ function renderPlan(data) {
         return;
     }
 
-    const mealColors = { breakfast:'warning', lunch:'success', dinner:'primary', snack:'info' };
+    const mealColors = { breakfast:'#f59e0b', lunch:'#22c55e', dinner:'#8b5cf6', snack:'#0ea5e9' };
+    const mealBgs    = { breakfast:'rgba(245,158,11,.1)', lunch:'rgba(34,197,94,.1)', dinner:'rgba(139,92,246,.1)', snack:'rgba(14,165,233,.1)' };
     const mealNames  = { breakfast:'Bữa sáng', lunch:'Bữa trưa', dinner:'Bữa tối', snack:'Snack' };
 
     planObj.days.forEach((day, i) => {
@@ -161,26 +212,29 @@ function renderPlan(data) {
         const mealHtml = meals.map(m => {
             const md = day[m];
             if (!md) return '';
-            return `<div class="d-flex justify-content-between align-items-center border-bottom py-2 px-3">
-                <div>
-                    <span class="badge bg-${mealColors[m]}-subtle text-${mealColors[m]} rounded-pill me-2">${mealNames[m]}</span>
-                    <span class="fw-semibold">${escHtml(md.name ?? '')}</span>
+            return `<div class="d-flex justify-content-between align-items-center py-2 px-4"
+                         style="border-bottom:1px solid rgba(226,232,240,.5)">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill px-2" style="background:${mealBgs[m]};color:${mealColors[m]};font-size:.72rem">${mealNames[m]}</span>
+                    <span class="fw-semibold small">${escHtml(md.name ?? '')}</span>
                 </div>
                 <div class="text-end small text-muted">
-                    <span class="text-success fw-bold">${md.calories ?? '--'}kcal</span>
+                    <span class="fw-bold" style="color:#16a34a">${md.calories ?? '--'}kcal</span>
                     <span class="ms-2">P:${md.protein ?? '-'}g C:${md.carb ?? '-'}g F:${md.fat ?? '-'}g</span>
                 </div>
             </div>`;
         }).join('');
 
         container.insertAdjacentHTML('beforeend', `
-            <div class="accordion-item border-0 border-bottom">
+            <div class="accordion-item border-0" style="border-bottom:1px solid #f1f5f9">
                 <h2 class="accordion-header">
                     <button class="accordion-button ${i > 0 ? 'collapsed' : ''} fw-bold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#${id}">
-                        <i class="bi bi-calendar-day me-2 text-warning"></i>
+                            data-bs-toggle="collapse" data-bs-target="#${id}"
+                            style="font-size:.9rem">
+                        <i class="bi bi-calendar-day me-2" style="color:#f59e0b"></i>
                         Ngày ${day.day}
-                        <span class="ms-auto me-3 badge bg-warning-subtle text-warning rounded-pill">
+                        <span class="ms-auto me-3 badge rounded-pill px-2"
+                              style="background:rgba(245,158,11,.1);color:#d97706;font-size:.75rem">
                             ${day.totalCalories ?? '--'} kcal
                         </span>
                     </button>

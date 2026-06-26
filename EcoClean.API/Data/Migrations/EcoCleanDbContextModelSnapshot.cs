@@ -4,19 +4,16 @@ using EcoClean.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace EcoClean.API.Migrations
+namespace EcoClean.API.Data.Migrations
 {
     [DbContext(typeof(EcoCleanDbContext))]
-    [Migration("20260528192436_FixChatHistoryTableName")]
-    partial class FixChatHistoryTableName
+    partial class EcoCleanDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,6 +217,12 @@ namespace EcoClean.API.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Ingredients")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -247,11 +250,16 @@ namespace EcoClean.API.Migrations
                             Calories = 320,
                             Carb = 12.0,
                             Category = "Lunch",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(333),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1410),
+                            Description = "Salad thanh mát với ức gà nướng mềm, giàu protein, thích hợp cho bữa trưa eat clean.",
                             Fat = 14.0,
                             Fiber = 4.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
+                            Ingredients = "[\"200g ức gà\",\"1 bát rau xà lách\",\"1/2 quả cà chua\",\"1/2 quả dưa leo\",\"1 muỗng dầu olive\",\"1 muỗng nước cốt chanh\",\"Muối tiêu vừa đủ\"]",
+                            Instructions = "[\"Ức gà ướp muối, tiêu, tỏi 15 phút\",\"Nướng gà ở 180°C khoảng 20 phút đến chín\",\"Rau xà lách rửa sạch, để ráo\",\"Cà chua và dưa leo thái lát\",\"Pha dressing: dầu olive + nước cốt chanh + muối tiêu\",\"Trộn rau + rau củ, xếp gà lên trên, rưới dressing\"]",
                             IsActive = true,
                             Name = "Salad ức gà nướng",
+                            PrepTimeMin = 20,
                             Protein = 35.0,
                             Tags = "[\"high-protein\",\"low-carb\"]"
                         },
@@ -261,11 +269,16 @@ namespace EcoClean.API.Migrations
                             Calories = 280,
                             Carb = 52.0,
                             Category = "Breakfast",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(336),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1416),
+                            Description = "Bát yến mạch ấm áp với trái cây tươi, cung cấp năng lượng bền vững cho buổi sáng.",
                             Fat = 5.0,
                             Fiber = 6.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=400",
+                            Ingredients = "[\"50g yến mạch cán dẹt\",\"200ml sữa tươi không đường\",\"1/2 quả chuối\",\"Vài quả dâu tây\",\"1 muỗng mật ong\",\"1 muỗng hạt chia\"]",
+                            Instructions = "[\"Đun sữa tươi đến khi ấm (không sôi)\",\"Cho yến mạch vào, khuấy đều, nấu 3-5 phút\",\"Đổ ra bát, để nguội bớt\",\"Cắt chuối lát, dâu tây đôi\",\"Xếp trái cây lên trên, rưới mật ong, rắc hạt chia\"]",
                             IsActive = true,
                             Name = "Yến mạch trái cây",
+                            PrepTimeMin = 10,
                             Protein = 8.0,
                             Tags = "[\"fiber\",\"energy\"]"
                         },
@@ -275,11 +288,16 @@ namespace EcoClean.API.Migrations
                             Calories = 450,
                             Carb = 48.0,
                             Category = "Lunch",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(338),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1418),
+                            Description = "Cơm gạo lứt kết hợp cá hồi áp chảo giàu omega-3, bữa trưa cân bằng dinh dưỡng.",
                             Fat = 12.0,
                             Fiber = 5.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400",
+                            Ingredients = "[\"150g cá hồi phi lê\",\"1 chén gạo lứt\",\"1/2 chén bông cải xanh\",\"1 muỗng dầu olive\",\"1 tép tỏi\",\"Muối, tiêu, nước tương\"]",
+                            Instructions = "[\"Vo gạo lứt, nấu cơm như bình thường (thêm nước hơn gạo trắng)\",\"Cá hồi thấm khô, ướp muối tiêu\",\"Áp chảo cá hồi với dầu olive 3-4 phút mỗi mặt\",\"Xào bông cải xanh với tỏi phi vàng\",\"Dọn cơm ra đĩa, xếp cá hồi và rau cạnh\"]",
                             IsActive = true,
                             Name = "Cơm gạo lứt cá hồi",
+                            PrepTimeMin = 30,
                             Protein = 42.0,
                             Tags = "[\"omega3\",\"balanced\"]"
                         },
@@ -289,11 +307,16 @@ namespace EcoClean.API.Migrations
                             Calories = 380,
                             Carb = 38.0,
                             Category = "Snack",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(339),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1420),
+                            Description = "Sinh tố bơ chuối béo ngậy, cung cấp chất béo lành mạnh và năng lượng nhanh.",
                             Fat = 20.0,
                             Fiber = 6.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1611601322175-ef8ec8c3e978?w=400",
+                            Ingredients = "[\"1/2 quả bơ chín\",\"1 quả chuối đông lạnh\",\"200ml sữa hạnh nhân\",\"1 muỗng protein whey (tùy chọn)\",\"Đá viên\",\"Mật ong\"]",
+                            Instructions = "[\"Cho tất cả nguyên liệu vào máy xay\",\"Xay nhuyễn đến khi mịn\",\"Nếm thử, thêm mật ong nếu cần ngọt hơn\",\"Rót ra ly, thưởng thức ngay\"]",
                             IsActive = true,
                             Name = "Smoothie bơ chuối",
+                            PrepTimeMin = 5,
                             Protein = 12.0,
                             Tags = "[\"smoothie\",\"healthy-fat\"]"
                         },
@@ -303,11 +326,16 @@ namespace EcoClean.API.Migrations
                             Calories = 210,
                             Carb = 6.0,
                             Category = "Breakfast",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(340),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1422),
+                            Description = "Bữa sáng nhanh gọn với trứng bác và rau cải, ít carb, nhiều protein.",
                             Fat = 13.0,
                             Fiber = 2.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400",
+                            Ingredients = "[\"3 quả trứng gà\",\"1 bó cải bó xôi\",\"1/2 quả ớt chuông\",\"1 muỗng dầu olive\",\"Muối, tiêu\",\"Vài nhánh hành lá\"]",
+                            Instructions = "[\"Đánh tan trứng với chút muối tiêu\",\"Phi hành lá với dầu olive\",\"Cho ớt chuông thái hạt lựu vào xào 1 phút\",\"Đổ trứng vào, khuấy nhẹ đến khi trứng vừa chín\",\"Cho rau cải vào, đảo đều, tắt bếp\"]",
                             IsActive = true,
                             Name = "Trứng bác rau cải",
+                            PrepTimeMin = 10,
                             Protein = 18.0,
                             Tags = "[\"low-carb\",\"quick\"]"
                         },
@@ -317,11 +345,16 @@ namespace EcoClean.API.Migrations
                             Calories = 290,
                             Carb = 14.0,
                             Category = "Dinner",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(342),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1423),
+                            Description = "Gà luộc thanh đạm ăn cùng rau hấp, bữa tối eat clean lý tưởng.",
                             Fat = 6.0,
                             Fiber = 5.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400",
+                            Ingredients = "[\"300g ức gà\",\"1 cây bông cải xanh\",\"2 cà rốt\",\"1/2 bắp cải\",\"Gừng, sả\",\"Nước mắm, chanh\"]",
+                            Instructions = "[\"Luộc gà với gừng và sả đến chín khoảng 20-25 phút\",\"Bông cải, cà rốt, bắp cải hấp chín tới (khoảng 8-10 phút)\",\"Gà nguội bớt thì xé sợi\",\"Pha nước chấm: nước mắm + chanh + tỏi ớt\",\"Dọn ra đĩa, ăn kèm rau và nước chấm\"]",
                             IsActive = true,
                             Name = "Gà luộc rau hấp",
+                            PrepTimeMin = 35,
                             Protein = 40.0,
                             Tags = "[\"lean\",\"clean\"]"
                         },
@@ -331,11 +364,16 @@ namespace EcoClean.API.Migrations
                             Calories = 310,
                             Carb = 44.0,
                             Category = "Breakfast",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(343),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1425),
+                            Description = "Yến mạch ngâm đêm tiện lợi, sáng dậy có ngay bữa ăn giàu chất xơ.",
                             Fat = 8.0,
                             Fiber = 8.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=400",
+                            Ingredients = "[\"50g yến mạch\",\"150ml sữa chua không đường\",\"100ml sữa tươi\",\"1 muỗng hạt chia\",\"1 muỗng mật ong\",\"Trái cây tùy thích\"]",
+                            Instructions = "[\"Trộn yến mạch, sữa chua, sữa tươi và hạt chia trong hũ thủy tinh\",\"Khuấy đều, thêm mật ong\",\"Đậy nắp, để tủ lạnh qua đêm (ít nhất 6 tiếng)\",\"Sáng hôm sau lấy ra, thêm trái cây tươi lên trên\"]",
                             IsActive = true,
                             Name = "Overnight oats",
+                            PrepTimeMin = 5,
                             Protein = 14.0,
                             Tags = "[\"prep-ahead\",\"fiber\"]"
                         },
@@ -345,13 +383,170 @@ namespace EcoClean.API.Migrations
                             Calories = 400,
                             Carb = 42.0,
                             Category = "Dinner",
-                            CreatedAt = new DateTime(2026, 5, 28, 19, 24, 35, 742, DateTimeKind.Utc).AddTicks(344),
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1428),
+                            Description = "Bowl quinoa kết hợp cá ngừ đóng hộp và rau củ đa màu sắc.",
                             Fat = 10.0,
                             Fiber = 5.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
+                            Ingredients = "[\"1/2 chén quinoa\",\"1 hộp cá ngừ trong nước\",\"1/2 quả bơ\",\"1 bắp ngô luộc\",\"Rau xà lách\",\"Dầu olive, chanh, muối tiêu\"]",
+                            Instructions = "[\"Nấu quinoa với nước theo tỉ lệ 1:2 trong 15 phút\",\"Cá ngừ ráo nước, tơi ra\",\"Bơ thái hạt lựu, bắp ngô tách hạt\",\"Xếp quinoa vào bowl, đặt các topping lên trên\",\"Rưới dầu olive và nước cốt chanh, nêm muối tiêu\"]",
                             IsActive = true,
                             Name = "Bowl cá ngừ quinoa",
+                            PrepTimeMin = 25,
                             Protein = 38.0,
                             Tags = "[\"complete-protein\",\"grain\"]"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Calories = 350,
+                            Carb = 45.0,
+                            Category = "Lunch",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1430),
+                            Description = "Phở gà truyền thống nấu ít dầu mỡ, thanh nhẹ nhưng vẫn đậm đà hương vị.",
+                            Fat = 5.0,
+                            Fiber = 2.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1582878826629-33b2ad425bca?w=400",
+                            Ingredients = "[\"200g ức gà\",\"1 bó bánh phở\",\"1 củ hành tây\",\"1 nhánh gừng nướng\",\"Hành lá, ngò rí\",\"Giá đỗ, rau húng quế\",\"Nước mắm, muối\"]",
+                            Instructions = "[\"Nướng hành tây và gừng trên lửa đến khi thơm, cháy vỏ\",\"Luộc gà trong 2 lít nước với hành và gừng 30 phút\",\"Vớt gà ra, thái lát; lọc nước dùng\",\"Nêm nước dùng với muối, nước mắm vừa ăn\",\"Trụng bánh phở, xếp vào tô\",\"Đổ nước dùng sôi, xếp gà, hành lá, ngò lên trên\",\"Ăn kèm giá đỗ và húng quế\"]",
+                            IsActive = true,
+                            Name = "Phở gà ít béo",
+                            PrepTimeMin = 45,
+                            Protein = 30.0,
+                            Tags = "[\"vietnamese\",\"low-fat\"]"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Calories = 380,
+                            Carb = 50.0,
+                            Category = "Lunch",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1432),
+                            Description = "Bún bò Huế phiên bản eat clean, ít mỡ, nước dùng đậm đà từ sả và mắm ruốc.",
+                            Fat = 6.0,
+                            Fiber = 3.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1562802378-063ec186a863?w=400",
+                            Ingredients = "[\"200g thịt bò nạm\",\"1 bó bún\",\"2 cây sả\",\"1 muỗng mắm ruốc Huế\",\"1 muỗng ớt sa tế\",\"Hành lá, ngò gai, bắp chuối bào\",\"Muối, đường\"]",
+                            Instructions = "[\"Hầm thịt bò với sả và muối khoảng 40 phút đến mềm\",\"Pha mắm ruốc với nước ấm, lọc lấy nước trong\",\"Cho nước mắm ruốc vào nồi nước dùng, nêm vừa ăn\",\"Thêm sa tế theo khẩu vị\",\"Trụng bún, xếp vào tô cùng thịt bò thái lát\",\"Chan nước dùng sôi, thêm hành lá và ngò gai\"]",
+                            IsActive = true,
+                            Name = "Bún bò Huế eat clean",
+                            PrepTimeMin = 50,
+                            Protein = 28.0,
+                            Tags = "[\"vietnamese\",\"spicy\"]"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Calories = 120,
+                            Carb = 20.0,
+                            Category = "Dinner",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1434),
+                            Description = "Canh rau củ thanh mát, giàu chất xơ, hỗ trợ tiêu hoá và thanh nhiệt cơ thể.",
+                            Fat = 2.0,
+                            Fiber = 6.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1547592180-85f173990554?w=400",
+                            Ingredients = "[\"1 củ cà rốt\",\"200g bí đao\",\"1 bó rau ngót\",\"2 quả cà chua\",\"1 muỗng nước mắm\",\"Hành lá, muối\"]",
+                            Instructions = "[\"Cà rốt và bí đao gọt vỏ, thái miếng vừa ăn\",\"Cà chua bổ múi cau\",\"Đun sôi 600ml nước, cho cà rốt vào trước (cứng hơn)\",\"Sau 5 phút thêm bí đao và cà chua\",\"Nêm nước mắm và muối vừa ăn\",\"Cho rau ngót vào, đun sôi lại 1-2 phút, tắt bếp\",\"Rắc hành lá lên trên\"]",
+                            IsActive = true,
+                            Name = "Canh rau củ thanh nhiệt",
+                            PrepTimeMin = 20,
+                            Protein = 5.0,
+                            Tags = "[\"vietnamese\",\"detox\",\"vegan\"]"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Calories = 340,
+                            Carb = 40.0,
+                            Category = "Breakfast",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1435),
+                            Description = "Bánh mì ngũ cốc kẹp ức gà áp chảo và rau củ, bữa sáng no lâu và dinh dưỡng.",
+                            Fat = 7.0,
+                            Fiber = 5.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1553909489-cd47e0907980?w=400",
+                            Ingredients = "[\"2 lát bánh mì ngũ cốc\",\"120g ức gà\",\"Vài lá xà lách\",\"1/2 quả cà chua\",\"1/4 quả dưa leo\",\"1 muỗng hummus hoặc sốt mù tạt mật ong\",\"Muối tiêu\"]",
+                            Instructions = "[\"Ức gà ướp muối tiêu, áp chảo đến chín vàng\",\"Bánh mì nướng giòn trên chảo khô\",\"Phết hummus lên một mặt bánh\",\"Xếp xà lách, cà chua, dưa leo và gà lên bánh\",\"Đậy lát bánh còn lại, cắt đôi và thưởng thức\"]",
+                            IsActive = true,
+                            Name = "Bánh mì ức gà ngũ cốc",
+                            PrepTimeMin = 15,
+                            Protein = 28.0,
+                            Tags = "[\"high-protein\",\"wholegrains\"]"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Calories = 180,
+                            Carb = 28.0,
+                            Category = "Snack",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1437),
+                            Description = "Súp bí đỏ mịn màng, thơm ngon, giàu vitamin A và chất chống oxy hóa.",
+                            Fat = 6.0,
+                            Fiber = 4.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=400",
+                            Ingredients = "[\"300g bí đỏ\",\"1 củ hành tây nhỏ\",\"2 tép tỏi\",\"300ml nước dùng rau củ\",\"100ml sữa dừa\",\"Hạt bí rang, dầu olive\",\"Muối, tiêu, nhục đậu khấu\"]",
+                            Instructions = "[\"Bí đỏ gọt vỏ, cắt miếng; hành tây thái nhỏ\",\"Phi hành tây và tỏi với dầu olive đến mềm\",\"Cho bí đỏ vào, đảo đều\",\"Đổ nước dùng vào, nấu 15 phút đến bí mềm\",\"Dùng máy xay sinh tố xay nhuyễn\",\"Cho sữa dừa vào, đun ấm lại, nêm muối tiêu\",\"Rắc hạt bí rang và vài giọt dầu olive lên trên\"]",
+                            IsActive = true,
+                            Name = "Súp bí đỏ hạt bí",
+                            PrepTimeMin = 25,
+                            Protein = 4.0,
+                            Tags = "[\"vegan\",\"antioxidant\"]"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Calories = 220,
+                            Carb = 4.0,
+                            Category = "Dinner",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1439),
+                            Description = "Cá basa hấp gừng hành thanh đạm, giữ trọn dưỡng chất, phù hợp ăn kiêng.",
+                            Fat = 8.0,
+                            Fiber = 1.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400",
+                            Ingredients = "[\"300g cá basa phi lê\",\"1 nhánh gừng\",\"3 nhánh hành lá\",\"2 muỗng nước tương\",\"1 muỗng dầu mè\",\"1 muỗng dầu ăn\",\"Tiêu xay\"]",
+                            Instructions = "[\"Cá basa rửa sạch, thấm khô, xếp vào đĩa hấp\",\"Gừng thái chỉ, rải đều lên cá\",\"Hấp cá trong 12-15 phút đến chín\",\"Đun nóng dầu ăn đến khói\",\"Lấy cá ra, rắc hành lá và tiêu\",\"Rưới nước tương và dầu mè lên cá\",\"Đổ dầu nóng lên để dậy mùi thơm\"]",
+                            IsActive = true,
+                            Name = "Cá basa hấp gừng hành",
+                            PrepTimeMin = 20,
+                            Protein = 32.0,
+                            Tags = "[\"vietnamese\",\"lean\",\"steamed\"]"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Calories = 95,
+                            Carb = 12.0,
+                            Category = "Snack",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1441),
+                            Description = "Salad dưa chuột giòn mát, ít calo, phù hợp ăn vặt lành mạnh bất cứ lúc nào.",
+                            Fat = 4.0,
+                            Fiber = 2.0,
+                            ImageUrl = "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400",
+                            Ingredients = "[\"2 quả dưa chuột\",\"1/2 quả hành tây tím\",\"Vài cọng rau mùi\",\"2 muỗng giấm gạo\",\"1 muỗng dầu mè\",\"1 muỗng nước mắm\",\"Ớt, tỏi băm\",\"Mè rang\"]",
+                            Instructions = "[\"Dưa chuột thái lát mỏng hoặc gọt sọc rồi thái\",\"Hành tây tím thái lát mỏng, ngâm nước đá 5 phút bớt hăng\",\"Pha nước trộn: giấm + dầu mè + nước mắm + tỏi + ớt\",\"Trộn dưa chuột và hành tây với nước trộn\",\"Để tủ lạnh 15 phút cho ngấm\",\"Rắc mè rang và rau mùi trước khi ăn\"]",
+                            IsActive = true,
+                            Name = "Salad dưa chuột thanh mát",
+                            PrepTimeMin = 10,
+                            Protein = 3.0,
+                            Tags = "[\"vegan\",\"low-cal\",\"refreshing\"]"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Calories = 310,
+                            Carb = 6.0,
+                            Category = "Dinner",
+                            CreatedAt = new DateTime(2026, 6, 14, 18, 3, 15, 349, DateTimeKind.Utc).AddTicks(1443),
+                            Description = "Thịt heo nạc kho tiêu đậm đà, ăn với cơm gạo lứt hoặc cơm cauli.",
+                            Fat = 15.0,
+                            Fiber = 0.5,
+                            ImageUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?w=400",
+                            Ingredients = "[\"300g thịt heo nạc vai\",\"2 muỗng nước mắm\",\"1 muỗng nước tương\",\"1 muỗng đường dừa\",\"1 muỗng tiêu xay\",\"3 tép tỏi\",\"2 muỗng nước dừa\",\"Hành lá\"]",
+                            Instructions = "[\"Thịt heo thái miếng 2cm, rửa sạch thấm khô\",\"Ướp với nước mắm, nước tương, đường, tiêu, tỏi 20 phút\",\"Cho thịt vào nồi, đảo đều trên lửa vừa\",\"Thêm nước dừa, kho liu riu 20-25 phút\",\"Nêm lại gia vị, kho đến khi nước cạn sệt\",\"Rắc hành lá và tiêu thêm trước khi dọn\"]",
+                            IsActive = true,
+                            Name = "Thịt heo nạc kho tiêu",
+                            PrepTimeMin = 35,
+                            Protein = 36.0,
+                            Tags = "[\"vietnamese\",\"high-protein\"]"
                         });
                 });
 
@@ -413,6 +608,9 @@ namespace EcoClean.API.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("FreeTrialUsed")
+                        .HasColumnType("int");
 
                     b.Property<string>("FullName")
                         .IsRequired()

@@ -9,6 +9,7 @@ public class User
     public string Role { get; set; } = "User";
     public bool IsPremium { get; set; } = false;
     public DateTime? PremiumExpiry { get; set; }
+    public int FreeTrialUsed { get; set; } = 0;   // Số lần đã dùng thử premium
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -54,6 +55,8 @@ public class Recipe
     public string? Tags { get; set; }
     public string? ImageUrl { get; set; }
     public int? PrepTimeMin { get; set; }
+    public string? Ingredients { get; set; }   // JSON array: ["200g ức gà","1 bát rau xà lách"...]
+    public string? Instructions { get; set; }  // JSON array: ["Bước 1: ...","Bước 2: ..."...]
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

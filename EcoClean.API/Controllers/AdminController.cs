@@ -149,6 +149,8 @@ public class AdminController : ControllerBase
         recipe.Tags       = updated.Tags;
         recipe.ImageUrl   = updated.ImageUrl;
         recipe.PrepTimeMin = updated.PrepTimeMin;
+        recipe.Ingredients  = updated.Ingredients;
+        recipe.Instructions = updated.Instructions;
         recipe.IsActive   = updated.IsActive;
         await _db.SaveChangesAsync();
         return Ok(recipe);

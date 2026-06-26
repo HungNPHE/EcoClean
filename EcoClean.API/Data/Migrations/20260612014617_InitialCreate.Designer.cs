@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace EcoClean.API.Migrations
+namespace EcoClean.API.Data.Migrations
 {
     [DbContext(typeof(EcoCleanDbContext))]
-    [Migration("20260528120931_InitialCreate")]
+    [Migration("20260612014617_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -94,7 +94,7 @@ namespace EcoClean.API.Migrations
 
                     b.HasIndex("UserId", "SessionId");
 
-                    b.ToTable("ChatHistories");
+                    b.ToTable("ChatHistory", (string)null);
                 });
 
             modelBuilder.Entity("EcoClean.API.Models.FoodScan", b =>
@@ -108,14 +108,14 @@ namespace EcoClean.API.Migrations
                     b.Property<int?>("Calories")
                         .HasColumnType("int");
 
-                    b.Property<float?>("Carb")
-                        .HasColumnType("real");
+                    b.Property<double?>("Carb")
+                        .HasColumnType("float");
 
-                    b.Property<float?>("Confidence")
-                        .HasColumnType("real");
+                    b.Property<double?>("Confidence")
+                        .HasColumnType("float");
 
-                    b.Property<float?>("Fat")
-                        .HasColumnType("real");
+                    b.Property<double?>("Fat")
+                        .HasColumnType("float");
 
                     b.Property<string>("FoodName")
                         .HasColumnType("nvarchar(max)");
@@ -124,8 +124,8 @@ namespace EcoClean.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float?>("Protein")
-                        .HasColumnType("real");
+                    b.Property<double?>("Protein")
+                        .HasColumnType("float");
 
                     b.Property<string>("RawAIResponse")
                         .HasColumnType("nvarchar(max)");
@@ -197,8 +197,8 @@ namespace EcoClean.API.Migrations
                     b.Property<int>("Calories")
                         .HasColumnType("int");
 
-                    b.Property<float>("Carb")
-                        .HasColumnType("real");
+                    b.Property<double>("Carb")
+                        .HasColumnType("float");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -211,11 +211,11 @@ namespace EcoClean.API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Fat")
-                        .HasColumnType("real");
+                    b.Property<double>("Fat")
+                        .HasColumnType("float");
 
-                    b.Property<float>("Fiber")
-                        .HasColumnType("real");
+                    b.Property<double>("Fiber")
+                        .HasColumnType("float");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
@@ -230,8 +230,8 @@ namespace EcoClean.API.Migrations
                     b.Property<int?>("PrepTimeMin")
                         .HasColumnType("int");
 
-                    b.Property<float>("Protein")
-                        .HasColumnType("real");
+                    b.Property<double>("Protein")
+                        .HasColumnType("float");
 
                     b.Property<string>("Tags")
                         .HasColumnType("nvarchar(max)");
@@ -245,112 +245,112 @@ namespace EcoClean.API.Migrations
                         {
                             Id = 1,
                             Calories = 320,
-                            Carb = 12f,
+                            Carb = 12.0,
                             Category = "Lunch",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6062),
-                            Fat = 14f,
-                            Fiber = 4f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1293),
+                            Fat = 14.0,
+                            Fiber = 4.0,
                             IsActive = true,
                             Name = "Salad ức gà nướng",
-                            Protein = 35f,
+                            Protein = 35.0,
                             Tags = "[\"high-protein\",\"low-carb\"]"
                         },
                         new
                         {
                             Id = 2,
                             Calories = 280,
-                            Carb = 52f,
+                            Carb = 52.0,
                             Category = "Breakfast",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6065),
-                            Fat = 5f,
-                            Fiber = 6f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1295),
+                            Fat = 5.0,
+                            Fiber = 6.0,
                             IsActive = true,
                             Name = "Yến mạch trái cây",
-                            Protein = 8f,
+                            Protein = 8.0,
                             Tags = "[\"fiber\",\"energy\"]"
                         },
                         new
                         {
                             Id = 3,
                             Calories = 450,
-                            Carb = 48f,
+                            Carb = 48.0,
                             Category = "Lunch",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6067),
-                            Fat = 12f,
-                            Fiber = 5f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1297),
+                            Fat = 12.0,
+                            Fiber = 5.0,
                             IsActive = true,
                             Name = "Cơm gạo lứt cá hồi",
-                            Protein = 42f,
+                            Protein = 42.0,
                             Tags = "[\"omega3\",\"balanced\"]"
                         },
                         new
                         {
                             Id = 4,
                             Calories = 380,
-                            Carb = 38f,
+                            Carb = 38.0,
                             Category = "Snack",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6068),
-                            Fat = 20f,
-                            Fiber = 6f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1298),
+                            Fat = 20.0,
+                            Fiber = 6.0,
                             IsActive = true,
                             Name = "Smoothie bơ chuối",
-                            Protein = 12f,
+                            Protein = 12.0,
                             Tags = "[\"smoothie\",\"healthy-fat\"]"
                         },
                         new
                         {
                             Id = 5,
                             Calories = 210,
-                            Carb = 6f,
+                            Carb = 6.0,
                             Category = "Breakfast",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6069),
-                            Fat = 13f,
-                            Fiber = 2f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1299),
+                            Fat = 13.0,
+                            Fiber = 2.0,
                             IsActive = true,
                             Name = "Trứng bác rau cải",
-                            Protein = 18f,
+                            Protein = 18.0,
                             Tags = "[\"low-carb\",\"quick\"]"
                         },
                         new
                         {
                             Id = 6,
                             Calories = 290,
-                            Carb = 14f,
+                            Carb = 14.0,
                             Category = "Dinner",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6071),
-                            Fat = 6f,
-                            Fiber = 5f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1301),
+                            Fat = 6.0,
+                            Fiber = 5.0,
                             IsActive = true,
                             Name = "Gà luộc rau hấp",
-                            Protein = 40f,
+                            Protein = 40.0,
                             Tags = "[\"lean\",\"clean\"]"
                         },
                         new
                         {
                             Id = 7,
                             Calories = 310,
-                            Carb = 44f,
+                            Carb = 44.0,
                             Category = "Breakfast",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6072),
-                            Fat = 8f,
-                            Fiber = 8f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1302),
+                            Fat = 8.0,
+                            Fiber = 8.0,
                             IsActive = true,
                             Name = "Overnight oats",
-                            Protein = 14f,
+                            Protein = 14.0,
                             Tags = "[\"prep-ahead\",\"fiber\"]"
                         },
                         new
                         {
                             Id = 8,
                             Calories = 400,
-                            Carb = 42f,
+                            Carb = 42.0,
                             Category = "Dinner",
-                            CreatedAt = new DateTime(2026, 5, 28, 12, 9, 30, 76, DateTimeKind.Utc).AddTicks(6074),
-                            Fat = 10f,
-                            Fiber = 5f,
+                            CreatedAt = new DateTime(2026, 6, 12, 1, 46, 16, 84, DateTimeKind.Utc).AddTicks(1303),
+                            Fat = 10.0,
+                            Fiber = 5.0,
                             IsActive = true,
                             Name = "Bowl cá ngừ quinoa",
-                            Protein = 38f,
+                            Protein = 38.0,
                             Tags = "[\"complete-protein\",\"grain\"]"
                         });
                 });
@@ -459,8 +459,8 @@ namespace EcoClean.API.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
-                    b.Property<float>("BMI")
-                        .HasColumnType("real");
+                    b.Property<double>("BMI")
+                        .HasColumnType("float");
 
                     b.Property<string>("BMICategory")
                         .IsRequired()
@@ -477,11 +477,11 @@ namespace EcoClean.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Height")
-                        .HasColumnType("real");
+                    b.Property<double>("Height")
+                        .HasColumnType("float");
 
-                    b.Property<float>("TDEE")
-                        .HasColumnType("real");
+                    b.Property<double>("TDEE")
+                        .HasColumnType("float");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -489,8 +489,8 @@ namespace EcoClean.API.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
+                    b.Property<double>("Weight")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -520,8 +520,8 @@ namespace EcoClean.API.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
+                    b.Property<double>("Weight")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 

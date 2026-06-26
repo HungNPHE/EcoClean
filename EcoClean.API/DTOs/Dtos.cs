@@ -25,7 +25,8 @@ public record BMIResultDto(
 public record RecipeDto(
     int Id, string Name, string? Description,
     int Calories, double Protein, double Carb, double Fat, double Fiber,
-    string Category, string? Tags, string? ImageUrl, int? PrepTimeMin);
+    string Category, string? Tags, string? ImageUrl, int? PrepTimeMin,
+    string? Ingredients, string? Instructions);
 
 public record RecipeFilterDto(
     string? Category, int? MaxCalories, int? MinProtein, string? Tag);
@@ -63,8 +64,27 @@ public record SubscriptionDto(
     DateTime? PaidAt, DateTime? ExpiresAt);
 
 // ── AI Meal Plan (Premium) ────────────────────────────────────
-public record AIMealPlanRequestDto(string Goal, int DurationDays);
+public record AIMealPlanRequestDto(string Goal, int DurationDays, string? FoodContext = null);
 public record AIMealPlanDto(
     int Id, string Title, string Goal,
     int TargetCalories, int DurationDays,
     string PlanJson, DateTime CreatedAt);
+
+// ── Recipe Suggestion (Premium) ───────────────────────────────
+public record RecipeSuggestionDto(
+    string DishName, string Description,
+    int Calories, double Protein, double Carb, double Fat,
+    string PrepTime, string Difficulty, string[] Steps);
+
+// ── SePay Webhook ─────────────────────────────────────────────
+// Payload SePay gửi về khi có giao dịch mới
+public record SePayWebhookDto(
+    string Gateway,           // Tên ngân hàng, vd: "Techcombank"
+    string TransactionDate,   // "2024-01-15 10:30:00"
+    string AccountNumber,     // Số tài khoản nhận
+    string Code,              // Mã giao dịch ngân hàng
+    string Content,           // Nội dung chuyển khoản — chứa txRef
+    decimal TransferAmount,   // Số tiền
+    string ReferenceCode,     // Mã tham chiếu SePay
+    int TransferType,         // 1 = tiền vào, 2 = tiền ra
+    string Description);      // Mô tả thêm

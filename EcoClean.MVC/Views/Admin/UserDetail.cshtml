@@ -24,105 +24,143 @@
 
     var subs = u.Value.TryGetProperty("subscriptions", out var subsEl) && subsEl.ValueKind == JsonValueKind.Array
                ? subsEl.EnumerateArray().ToList() : new();
+
+    var (roleBg, roleColor) = role switch {
+        "Admin"   => ("rgba(239,68,68,.12)",   "#dc2626"),
+        "Premium" => ("rgba(245,158,11,.12)",  "#d97706"),
+        _         => ("rgba(100,116,139,.12)", "#64748b")
+    };
 }
 
-<div class="mb-3">
-    <a asp-action="Users" class="btn btn-sm btn-outline-secondary rounded-pill">
-        <i class="bi bi-arrow-left me-1"></i>Quay lại
+<!-- Back -->
+<div class="mb-4">
+    <a asp-action="Users" class="btn btn-sm rounded-pill fw-semibold"
+       style="background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
     </a>
 </div>
 
 <div class="row g-4">
-    <!-- User info -->
+    <!-- User card -->
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-3 p-4">
-            <div class="text-center mb-3">
-                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
-                     style="width:64px;height:64px">
-                    <i class="bi bi-person-fill text-primary fs-2"></i>
+        <div class="content-card p-4 mb-4">
+            <!-- Avatar + info -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                     style="width:72px;height:72px;background:linear-gradient(135deg,#16a34a,#22c55e);font-size:1.75rem;font-weight:700;color:white">
+                    @(name?.Length > 0 ? name[0].ToString().ToUpper() : "?")
                 </div>
-                <h5 class="fw-bold mb-0">@name</h5>
-                <div class="text-muted small">@email</div>
-                <div class="mt-2">
-                    @if (role == "Admin")   { <span class="badge bg-danger">Admin</span> }
-                    else if (role == "Premium") { <span class="badge bg-warning text-dark">Premium</span> }
-                    else { <span class="badge bg-secondary">User</span> }
-                </div>
+                <h5 class="fw-bold mb-1">@name</h5>
+                <div class="text-muted small mb-2">@email</div>
+                <span class="badge rounded-pill px-3 py-1"
+                      style="background:@roleBg;color:@roleColor;font-size:.8rem">
+                    @role
+                </span>
             </div>
-            <hr />
-            <div class="small">
-                <div class="d-flex justify-content-between py-1">
-                    <span class="text-muted">ID</span><span>#@uid</span>
-                </div>
-                <div class="d-flex justify-content-between py-1">
-                    <span class="text-muted">Ngày tạo</span><span>@created</span>
-                </div>
-                <div class="d-flex justify-content-between py-1">
-                    <span class="text-muted">Premium đến</span>
-                    <span class="@(isPrem ? "text-success fw-semibold" : "text-muted")">@expiry</span>
-                </div>
+
+            <div class="border-top pt-3">
+                @foreach (var (lbl, val, highlight) in new[] {
+                    ("ID", $"#{uid}", false),
+                    ("Ngày tạo", created, false),
+                    ("Premium đến", expiry, isPrem),
+                })
+                {
+                    <div class="d-flex justify-content-between align-items-center py-2"
+                         style="border-bottom:1px solid rgba(226,232,240,.6)">
+                        <span class="text-muted small">@lbl</span>
+                        <span class="small fw-semibold @(highlight ? "text-success" : "")">@val</span>
+                    </div>
+                }
             </div>
-            <hr />
-            <!-- Activity counts -->
-            <div class="row g-2 text-center small">
-                @foreach (var (lbl, val, color) in new[] {
-                    ("Bữa ăn",   mealCnt, "success"),
-                    ("Cân nặng", wCnt,    "info"),
-                    ("Quét ảnh", scanCnt, "warning"),
-                    ("Chat",     chatCnt, "primary"),
+        </div>
+
+        <!-- Activity stats -->
+        <div class="content-card p-4 mb-4">
+            <div class="fw-bold small mb-3" style="color:#64748b;text-transform:uppercase;letter-spacing:.05em">Hoạt động</div>
+            <div class="row g-2">
+                @foreach (var (lbl, val, color, bg) in new[] {
+                    ("Bữa ăn",   mealCnt, "#22c55e", "rgba(34,197,94,.1)"),
+                    ("Cân nặng", wCnt,    "#0ea5e9", "rgba(14,165,233,.1)"),
+                    ("Quét ảnh", scanCnt, "#f59e0b", "rgba(245,158,11,.1)"),
+                    ("Chat",     chatCnt, "#8b5cf6", "rgba(139,92,246,.1)"),
                 })
                 {
                     <div class="col-6">
-                        <div class="bg-@color bg-opacity-10 rounded-3 py-2">
-                            <div class="fw-bold text-@color fs-5">@val</div>
-                            <div class="text-muted">@lbl</div>
+                        <div class="rounded-3 p-3 text-center" style="background:@bg">
+                            <div class="fw-bold" style="font-size:1.4rem;color:@color">@val</div>
+                            <div class="text-muted" style="font-size:.75rem">@lbl</div>
                         </div>
                     </div>
                 }
             </div>
-            @if (role != "Admin")
-            {
-                <hr />
-                <div class="d-flex gap-2">
+        </div>
+
+        <!-- Actions -->
+        @if (role != "Admin")
+        {
+            <div class="content-card p-4">
+                <div class="fw-bold small mb-3" style="color:#64748b;text-transform:uppercase;letter-spacing:.05em">Hành động</div>
+                <div class="d-flex flex-column gap-2">
                     @if (!isPrem)
                     {
-                        <form method="post" asp-action="GrantPremium" class="flex-grow-1">
+                        <form method="post" asp-action="GrantPremium">
                             <input type="hidden" name="id" value="@uid" />
                             <input type="hidden" name="months" value="1" />
-                            <button class="btn btn-warning btn-sm w-100 rounded-3">
-                                <i class="bi bi-stars me-1"></i>Cấp Premium
+                            <button class="btn btn-sm w-100 rounded-3 fw-semibold"
+                                    style="background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2)">
+                                <i class="bi bi-stars me-1"></i>Cấp Premium 1 tháng
+                            </button>
+                        </form>
+                        <form method="post" asp-action="GrantPremium">
+                            <input type="hidden" name="id" value="@uid" />
+                            <input type="hidden" name="months" value="12" />
+                            <button class="btn btn-sm w-100 rounded-3 fw-semibold"
+                                    style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.25)">
+                                <i class="bi bi-stars me-1"></i>Cấp Premium 1 năm
                             </button>
                         </form>
                     }
                     else
                     {
-                        <form method="post" asp-action="RevokePremium" class="flex-grow-1">
+                        <form method="post" asp-action="RevokePremium">
                             <input type="hidden" name="id" value="@uid" />
-                            <button class="btn btn-outline-warning btn-sm w-100 rounded-3">
-                                <i class="bi bi-x-circle me-1"></i>Thu hồi
+                            <button class="btn btn-sm w-100 rounded-3 fw-semibold"
+                                    style="background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2)">
+                                <i class="bi bi-x-circle me-1"></i>Thu hồi Premium
                             </button>
                         </form>
                     }
                     <form method="post" asp-action="DeleteUser"
                           onsubmit="return confirm('Xóa vĩnh viễn tài khoản @email? Không thể hoàn tác!')">
                         <input type="hidden" name="id" value="@uid" />
-                        <button class="btn btn-outline-danger btn-sm rounded-3">
-                            <i class="bi bi-trash3"></i>
+                        <button class="btn btn-sm w-100 rounded-3 fw-semibold"
+                                style="background:rgba(239,68,68,.08);color:#dc2626;border:1px solid rgba(239,68,68,.15)">
+                            <i class="bi bi-trash3 me-1"></i>Xóa tài khoản
                         </button>
                     </form>
                 </div>
-            }
-        </div>
+            </div>
+        }
     </div>
 
-    <!-- Profile + Subscriptions -->
+    <!-- Right column -->
     <div class="col-md-8">
         <!-- Health Profile -->
-        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
-            <h6 class="fw-bold mb-3"><i class="bi bi-heart-pulse text-danger me-2"></i>Hồ sơ sức khỏe</h6>
+        <div class="content-card p-4 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:34px;height:34px;background:rgba(239,68,68,.1);color:#ef4444">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <h6 class="fw-bold mb-0">Hồ sơ sức khỏe</h6>
+            </div>
+
             @if (!hasPro)
             {
-                <p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Người dùng chưa cập nhật hồ sơ.</p>
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-clipboard-x display-5 d-block mb-2 opacity-25"></i>
+                    <p class="mb-0 small">Người dùng chưa cập nhật hồ sơ sức khỏe.</p>
+                </div>
             }
             else
             {
@@ -130,67 +168,105 @@
                 int    GetI(string key) => prof!.Value.TryGetProperty(key, out var v) ? v.GetInt32()  : 0;
                 string GetS(string key) => prof!.Value.TryGetProperty(key, out var v) ? v.GetString() ?? "" : "";
 
-                <div class="row g-3">
+                var bmi = GetD("bmi");
+                var bmiColor = bmi < 18.5 ? "#0ea5e9" : bmi < 25 ? "#22c55e" : bmi < 30 ? "#f59e0b" : "#ef4444";
+
+                <div class="row g-3 mb-3">
                     @foreach (var (lbl, val, unit, color) in new[] {
-                        ("Chiều cao", GetD("height").ToString("0.0"), "cm",   "primary"),
-                        ("Cân nặng",  GetD("weight").ToString("0.0"), "kg",   "success"),
-                        ("BMI",       GetD("bmi").ToString("0.0"),    "",     GetD("bmi") < 18.5 ? "info" : GetD("bmi") < 25 ? "success" : GetD("bmi") < 30 ? "warning" : "danger"),
-                        ("TDEE",      GetD("tdee").ToString("N0"),    "kcal", "orange"),
-                        ("Mục tiêu calo", GetI("dailyCalorieGoal").ToString("N0"), "kcal", "purple"),
-                        ("Tuổi",      GetI("age").ToString(),         "tuổi", "secondary"),
+                        ("Chiều cao", GetD("height").ToString("0.0"), "cm",   "#3b82f6"),
+                        ("Cân nặng",  GetD("weight").ToString("0.0"), "kg",   "#22c55e"),
+                        ("BMI",       GetD("bmi").ToString("0.0"),    "",     bmiColor),
+                        ("TDEE",      GetD("tdee").ToString("N0"),    "kcal", "#f59e0b"),
+                        ("Mục tiêu",  GetI("dailyCalorieGoal").ToString("N0"), "kcal", "#8b5cf6"),
+                        ("Tuổi",      GetI("age").ToString(),         "tuổi", "#64748b"),
                     })
                     {
                         <div class="col-6 col-md-4">
-                            <div class="bg-light rounded-3 p-3 text-center">
-                                <div class="fw-bold fs-5" style="color:var(--bs-@color,#6c757d)">@val <small class="fs-6 fw-normal text-muted">@unit</small></div>
-                                <div class="text-muted small">@lbl</div>
+                            <div class="rounded-3 p-3 text-center" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                <div class="fw-bold" style="font-size:1.3rem;color:@color">
+                                    @val <small style="font-size:.75rem;color:#94a3b8;font-weight:400">@unit</small>
+                                </div>
+                                <div class="text-muted" style="font-size:.75rem">@lbl</div>
                             </div>
                         </div>
                     }
                 </div>
-                <div class="mt-3 d-flex gap-3 small text-muted">
-                    <span><i class="bi bi-gender-ambiguous me-1"></i>@GetS("gender")</span>
-                    <span><i class="bi bi-activity me-1"></i>@GetS("activityLevel")</span>
-                    <span><i class="bi bi-bullseye me-1"></i>@GetS("goal")</span>
-                    <span><i class="bi bi-tag me-1"></i>@GetS("bmiCategory")</span>
+
+                <div class="d-flex flex-wrap gap-3 pt-2 border-top">
+                    @foreach (var (icon, val) in new[] {
+                        ("bi-gender-ambiguous", GetS("gender")),
+                        ("bi-activity",         GetS("activityLevel")),
+                        ("bi-bullseye",         GetS("goal")),
+                        ("bi-tag",              GetS("bmiCategory")),
+                    })
+                    {
+                        <span class="d-flex align-items-center gap-1 small text-muted">
+                            <i class="bi @icon"></i>@val
+                        </span>
+                    }
                 </div>
             }
         </div>
 
         <!-- Subscriptions -->
-        <div class="card border-0 shadow-sm rounded-3 p-4">
-            <h6 class="fw-bold mb-3"><i class="bi bi-credit-card text-success me-2"></i>Lịch sử đăng ký</h6>
+        <div class="content-card p-4">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:34px;height:34px;background:rgba(22,163,74,.1);color:#16a34a">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <h6 class="fw-bold mb-0">Lịch sử đăng ký</h6>
+            </div>
+
             @if (!subs.Any())
             {
-                <p class="text-muted mb-0">Chưa có giao dịch nào.</p>
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-receipt display-5 d-block mb-2 opacity-25"></i>
+                    <p class="mb-0 small">Chưa có giao dịch nào.</p>
+                </div>
             }
             else
             {
-                <table class="table table-sm align-middle mb-0 small">
-                    <thead class="table-light">
-                        <tr><th>Gói</th><th>Số tiền</th><th>Trạng thái</th><th>Thanh toán</th><th>Hết hạn</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var sub in subs)
-                        {
-                            var plan   = sub.TryGetProperty("plan",   out var pl) ? pl.GetString() : "";
-                            var amount = sub.TryGetProperty("amount", out var am) ? am.GetDecimal() : 0m;
-                            var st     = sub.TryGetProperty("status", out var s2) ? s2.GetString() : "";
-                            var paid   = sub.TryGetProperty("paidAt", out var pa) && pa.ValueKind != JsonValueKind.Null
-                                         ? pa.GetDateTime().ToString("dd/MM/yy") : "—";
-                            var exp    = sub.TryGetProperty("expiresAt", out var ex) && ex.ValueKind != JsonValueKind.Null
-                                         ? ex.GetDateTime().ToString("dd/MM/yyyy") : "—";
-                            var bc     = st switch { "Paid" => "success", "Pending" => "warning", _ => "secondary" };
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
                             <tr>
-                                <td>@plan</td>
-                                <td>@amount.ToString("N0")₫</td>
-                                <td><span class="badge bg-@bc-subtle text-@bc">@st</span></td>
-                                <td>@paid</td>
-                                <td>@exp</td>
+                                <th>Gói</th>
+                                <th class="text-end">Số tiền</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th>Thanh toán</th>
+                                <th>Hết hạn</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var sub in subs)
+                            {
+                                var plan   = sub.TryGetProperty("plan",   out var pl) ? pl.GetString() : "";
+                                var amount = sub.TryGetProperty("amount", out var am) ? am.GetDecimal() : 0m;
+                                var st     = sub.TryGetProperty("status", out var s2) ? s2.GetString() : "";
+                                var paid   = sub.TryGetProperty("paidAt", out var pa) && pa.ValueKind != JsonValueKind.Null
+                                             ? pa.GetDateTime().ToString("dd/MM/yy") : "—";
+                                var exp    = sub.TryGetProperty("expiresAt", out var ex) && ex.ValueKind != JsonValueKind.Null
+                                             ? ex.GetDateTime().ToString("dd/MM/yyyy") : "—";
+                                var (stBg, stColor) = st switch {
+                                    "Paid"    => ("rgba(34,197,94,.1)",   "#16a34a"),
+                                    "Pending" => ("rgba(245,158,11,.1)",  "#d97706"),
+                                    _         => ("rgba(100,116,139,.1)", "#64748b")
+                                };
+                                <tr>
+                                    <td class="fw-semibold small">@plan</td>
+                                    <td class="text-end fw-semibold small">@amount.ToString("N0")₫</td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill px-2"
+                                              style="background:@stBg;color:@stColor;font-size:.75rem">@st</span>
+                                    </td>
+                                    <td class="text-muted small">@paid</td>
+                                    <td class="text-muted small">@exp</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
         </div>
     </div>

@@ -1,501 +1,253 @@
 @using System.Text.Json
-
 @{
     ViewData["Title"] = "Hồ sơ sức khỏe";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var p = ViewBag.Profile is JsonElement pe && pe.ValueKind != JsonValueKind.Null
-        ? (JsonElement?)pe
-        : null;
+        ? (JsonElement?)pe : null;
 
-    var selectedMale =
-        p.HasValue &&
-        p.Value.TryGetProperty("gender", out var g) &&
-        g.GetString() == "Male";
-
-    var selectedFemale =
-        p.HasValue &&
-        p.Value.TryGetProperty("gender", out var g2) &&
-        g2.GetString() == "Female";
+    var selectedMale   = p.HasValue && p.Value.TryGetProperty("gender", out var g)  && g.GetString()  == "Male";
+    var selectedFemale = p.HasValue && p.Value.TryGetProperty("gender", out var g2) && g2.GetString() == "Female";
 }
 
 <div class="container py-4">
-
     <div class="d-flex align-items-center mb-4">
-        <i class="bi bi-person-badge text-success fs-2 me-3"></i>
-
+        <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
+             style="width:44px;height:44px;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;font-size:1.2rem">
+            <i class="bi bi-person-badge"></i>
+        </div>
         <div>
-            <h2 class="fw-bold mb-0">Hồ sơ sức khỏe</h2>
-
-            <p class="text-muted mb-0">
-                Nhập thông tin để tính BMI & TDEE cá nhân hóa
-            </p>
+            <h2 class="fw-bold mb-0" style="letter-spacing:-0.02em">Hồ sơ sức khỏe</h2>
+            <p class="text-muted mb-0 small">Nhập thông tin để tính BMI & TDEE cá nhân hóa</p>
         </div>
     </div>
 
     <div class="row g-4">
-
         <!-- Form -->
         <div class="col-md-6">
-
-            <div class="card border-0 shadow-sm rounded-4 p-4">
-
+            <div class="card border-0 p-4" style="border-radius:20px !important">
                 <h5 class="fw-bold mb-4">
-                    <i class="bi bi-pencil-square me-2 text-success"></i>
-                    Thông tin cơ thể
+                    <i class="bi bi-pencil-square me-2" style="color:#16a34a"></i>Thông tin cơ thể
                 </h5>
 
-                <form method="post"
-                      asp-controller="Profile"
-                      asp-action="Save"
-                      id="profileForm">
-
+                <form method="post" asp-controller="Profile" asp-action="Save" id="profileForm">
                     <div class="row g-3">
-
                         <div class="col-6">
-
-                            <label class="form-label fw-semibold">
-                                Chiều cao (cm)
-                            </label>
-
-                            <input type="number"
-                                   name="height"
-                                   id="height"
-                                   class="form-control rounded-3"
+                            <label class="form-label">Chiều cao (cm)</label>
+                            <input type="number" name="height" id="height" class="form-control"
                                    value="@(p.HasValue && p.Value.TryGetProperty("height", out var h) ? h.GetDouble() : 170)"
-                                   min="100"
-                                   max="250"
-                                   step="0.1"
-                                   required
-                                   oninput="calcPreview()" />
+                                   min="100" max="250" step="0.1" required oninput="calcPreview()" />
                         </div>
-
                         <div class="col-6">
-
-                            <label class="form-label fw-semibold">
-                                Cân nặng (kg)
-                            </label>
-
-                            <input type="number"
-                                   name="weight"
-                                   id="weight"
-                                   class="form-control rounded-3"
+                            <label class="form-label">Cân nặng (kg)</label>
+                            <input type="number" name="weight" id="weight" class="form-control"
                                    value="@(p.HasValue && p.Value.TryGetProperty("weight", out var w) ? w.GetDouble() : 65)"
-                                   min="20"
-                                   max="300"
-                                   step="0.1"
-                                   required
-                                   oninput="calcPreview()" />
+                                   min="20" max="300" step="0.1" required oninput="calcPreview()" />
                         </div>
-
                         <div class="col-6">
-
-                            <label class="form-label fw-semibold">
-                                Tuổi
-                            </label>
-
-                            <input type="number"
-                                   name="age"
-                                   id="age"
-                                   class="form-control rounded-3"
+                            <label class="form-label">Tuổi</label>
+                            <input type="number" name="age" id="age" class="form-control"
                                    value="@(p.HasValue && p.Value.TryGetProperty("age", out var a) ? a.GetInt32() : 25)"
-                                   min="10"
-                                   max="120"
-                                   required
-                                   oninput="calcPreview()" />
+                                   min="10" max="120" required oninput="calcPreview()" />
                         </div>
-
                         <div class="col-6">
-
-                            <label class="form-label fw-semibold">
-                                Giới tính
-                            </label>
-
-                            <select name="gender"
-                                    id="gender"
-                                    class="form-select rounded-3"
-                                    onchange="calcPreview()">
-
-                                <option value="Male"
-                                        selected="@(selectedMale ? "selected" : null)">
-                                    Nam
-                                </option>
-
-                                <option value="Female"
-                                        selected="@(selectedFemale ? "selected" : null)">
-                                    Nữ
-                                </option>
-
-                                <option value="Other">
-                                    Khác
-                                </option>
-
+                            <label class="form-label">Giới tính</label>
+                            <select name="gender" id="gender" class="form-select" onchange="calcPreview()">
+                                <option value="Male"   selected="@(selectedMale   ? "selected" : null)">Nam</option>
+                                <option value="Female" selected="@(selectedFemale ? "selected" : null)">Nữ</option>
+                                <option value="Other">Khác</option>
                             </select>
                         </div>
-
                         <div class="col-12">
-
-                            <label class="form-label fw-semibold">
-                                Mức độ vận động
-                            </label>
-
-                            <select name="activityLevel"
-                                    id="activity"
-                                    class="form-select rounded-3"
-                                    onchange="calcPreview()">
-
-                                <option value="Sedentary">
-                                    Ít vận động (văn phòng)
-                                </option>
-
-                                <option value="LightlyActive">
-                                    Nhẹ (1-3 ngày/tuần)
-                                </option>
-
-                                <option value="ModeratelyActive">
-                                    Vừa (3-5 ngày/tuần)
-                                </option>
-
-                                <option value="VeryActive">
-                                    Nhiều (6-7 ngày/tuần)
-                                </option>
-
-                                <option value="ExtraActive">
-                                    Rất nhiều (vận động viên)
-                                </option>
-
+                            <label class="form-label">Mức độ vận động</label>
+                            <select name="activityLevel" id="activity" class="form-select" onchange="calcPreview()">
+                                <option value="Sedentary">Ít vận động (văn phòng)</option>
+                                <option value="LightlyActive">Nhẹ (1-3 ngày/tuần)</option>
+                                <option value="ModeratelyActive">Vừa (3-5 ngày/tuần)</option>
+                                <option value="VeryActive">Nhiều (6-7 ngày/tuần)</option>
+                                <option value="ExtraActive">Rất nhiều (vận động viên)</option>
                             </select>
                         </div>
-
                         <div class="col-12">
-
-                            <label class="form-label fw-semibold">
-                                Mục tiêu
-                            </label>
-
-                            <div class="d-flex gap-2">
-
-                                @foreach (var (val, lbl, icon) in new[]
-                                                                {
-                                                                ("LoseWeight","Giảm cân","bi-arrow-down-circle"),
-                                                                ("Maintain","Giữ dáng","bi-dash-circle"),
-                                                                ("GainWeight","Tăng cân","bi-arrow-up-circle")
-                                                                })
+                            <label class="form-label">Mục tiêu</label>
+                            <div class="row g-2">
+                                @foreach (var (val, lbl, icon, color, bg) in new[] {
+                                    ("LoseWeight","Giảm cân",  "bi-arrow-down-circle","#22c55e","rgba(34,197,94,.08)"),
+                                    ("Maintain",  "Giữ dáng",  "bi-dash-circle",      "#3b82f6","rgba(59,130,246,.08)"),
+                                    ("GainWeight","Tăng cân",  "bi-arrow-up-circle",  "#ef4444","rgba(239,68,68,.08)")
+                                })
                                 {
-                                    var isActive =
-                                    p.HasValue &&
-                                    p.Value.TryGetProperty("goal", out var gv) &&
-                                    gv.GetString() == val;
-
-                                    <label class="btn btn-outline-success flex-fill text-center @(isActive ? "active" : "")">
-
-                                        <input type="radio"
-                                               name="goal"
-                                               value="@val"
-                                               class="btn-check"
-                                               checked="@(isActive ? "checked" : null)"
-                                               onchange="calcPreview()" />
-
-                                        <i class="bi @icon d-block fs-4 mb-1"></i>
-
-                                        <small>@lbl</small>
-
-                                    </label>
+                                    var isActive = p.HasValue && p.Value.TryGetProperty("goal", out var gv) && gv.GetString() == val;
+                                    <div class="col-4">
+                                        <label class="d-flex flex-column align-items-center gap-1 p-2 rounded-3 text-center"
+                                               style="cursor:pointer;border:1.5px solid @(isActive ? color : "#e2e8f0");background:@(isActive ? bg : "transparent");transition:all .15s">
+                                            <input type="radio" name="goal" value="@val" class="btn-check"
+                                                   checked="@(isActive ? "checked" : null)"
+                                                   onchange="calcPreview()" />
+                                            <i class="bi @icon" style="font-size:1.3rem;color:@color"></i>
+                                            <small class="fw-semibold" style="font-size:.78rem">@lbl</small>
+                                        </label>
+                                    </div>
                                 }
-
                             </div>
                         </div>
-
                     </div>
 
-                    <button type="submit"
-                            class="btn btn-success w-100 py-2 mt-4 fw-bold rounded-3">
-
-                        <i class="bi bi-save me-2"></i>
-                        Lưu & Tính toán
-
+                    <button type="submit" class="btn btn-eco w-100 py-2 mt-4 fw-bold rounded-pill">
+                        <i class="bi bi-save me-2"></i>Lưu & Tính toán
                     </button>
-
                 </form>
-
             </div>
         </div>
 
         <!-- Results -->
         <div class="col-md-6">
-
             @if (p.HasValue)
             {
-                var bmi = p.Value.TryGetProperty("bmi", out var bv)
-                ? bv.GetDouble()
-                : 0;
+                var bmi     = p.Value.TryGetProperty("bmi",              out var bv) ? bv.GetDouble() : 0;
+                var cat     = p.Value.TryGetProperty("bmiCategory",      out var cv) ? cv.GetString() : "";
+                var tdee    = p.Value.TryGetProperty("tdee",             out var tv) ? tv.GetDouble() : 0;
+                var calGoal = p.Value.TryGetProperty("dailyCalorieGoal", out var dv) ? dv.GetInt32()  : 0;
+                var goal    = p.Value.TryGetProperty("goal",             out var go) ? go.GetString() : "";
 
-                var cat = p.Value.TryGetProperty("bmiCategory", out var cv)
-                ? cv.GetString()
-                : "";
-
-                var tdee = p.Value.TryGetProperty("tdee", out var tv)
-                ? tv.GetDouble()
-                : 0;
-
-                var calGoal = p.Value.TryGetProperty("dailyCalorieGoal", out var dv)
-                ? dv.GetInt32()
-                : 0;
-
-                var goal = p.Value.TryGetProperty("goal", out var go)
-                ? go.GetString()
-                : "";
-
-                var catColor = cat switch
-                {
-                    "Underweight" => "info",
-                    "Normal" => "success",
-                    "Overweight" => "warning",
-                    _ => "danger"
+                var (catColor, catBg) = cat switch {
+                    "Underweight" => ("#0ea5e9", "rgba(14,165,233,.1)"),
+                    "Normal"      => ("#16a34a", "rgba(22,163,74,.1)"),
+                    "Overweight"  => ("#f59e0b", "rgba(245,158,11,.1)"),
+                    _             => ("#ef4444", "rgba(239,68,68,.1)")
                 };
 
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4"
-                     style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
-
+                <div class="card border-0 p-4 mb-4" style="border-radius:20px !important;background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
                     <h5 class="fw-bold mb-4">
-                        <i class="bi bi-bar-chart-fill me-2 text-success"></i>
-                        Kết quả phân tích
+                        <i class="bi bi-bar-chart-fill me-2" style="color:#16a34a"></i>Kết quả phân tích
                     </h5>
-
                     <div class="row g-3 text-center">
-
                         <div class="col-6">
-
                             <div class="bg-white rounded-3 p-3 shadow-sm">
-
-                                <small class="text-muted d-block">
-                                    BMI
-                                </small>
-
-                                <span class="display-6 fw-bold text-@catColor">
+                                <small class="text-muted d-block mb-1">BMI</small>
+                                <div class="fw-bold" style="font-size:2.2rem;letter-spacing:-0.03em;color:@catColor">
                                     @bmi.ToString("0.0")
-                                </span>
-
-                                <span class="badge bg-@catColor d-block mt-1">
+                                </div>
+                                <span class="badge rounded-pill px-2" style="background:@catBg;color:@catColor;font-size:.78rem">
                                     @cat
                                 </span>
-
                             </div>
                         </div>
-
                         <div class="col-6">
-
                             <div class="bg-white rounded-3 p-3 shadow-sm">
-
-                                <small class="text-muted d-block">
-                                    TDEE
-                                </small>
-
-                                <span class="display-6 fw-bold text-primary">
+                                <small class="text-muted d-block mb-1">TDEE</small>
+                                <div class="fw-bold" style="font-size:2.2rem;letter-spacing:-0.03em;color:#3b82f6">
                                     @((int)tdee)
-                                </span>
-
-                                <span class="d-block mt-1 text-muted small">
-                                    kcal/ngày
-                                </span>
-
+                                </div>
+                                <small class="text-muted">kcal/ngày</small>
                             </div>
                         </div>
-
                         <div class="col-12">
-
                             <div class="bg-white rounded-3 p-3 shadow-sm">
-
-                                <small class="text-muted d-block mb-1">
-                                    Mục tiêu calo hàng ngày
-                                </small>
-
-                                <span class="fs-2 fw-bold text-warning">
+                                <small class="text-muted d-block mb-1">Mục tiêu calo hàng ngày</small>
+                                <div class="fw-bold" style="font-size:2rem;letter-spacing:-0.03em;color:#f59e0b">
                                     @calGoal.ToString("N0") kcal
-                                </span>
-
+                                </div>
                                 <div class="text-muted small mt-1">
-
-                                    @(goal == "LoseWeight"
-                                                                    ? "⬇ Giảm cân (thâm hụt 500 kcal)"
-                                                                    : goal == "GainWeight"
-                                                                    ? "⬆ Tăng cân (dư 300 kcal)"
-                                                                    : "➡ Duy trì cân nặng")
-
-                            </div>
-
+                                    @(goal == "LoseWeight" ? "⬇ Giảm cân (thâm hụt 500 kcal)"
+                                      : goal == "GainWeight" ? "⬆ Tăng cân (dư 300 kcal)"
+                                      : "➡ Duy trì cân nặng")
+                                </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm rounded-4 p-4">
-
-                    <h6 class="fw-bold mb-3">
-                        Phân loại BMI
-                    </h6>
-
-                @foreach (var (range, label, color) in new[]
-                                {
-                                ("< 18.5", "Thiếu cân", "info"),
-                                ("18.5 – 25", "Bình thường", "success"),
-                                ("25 – 30", "Thừa cân", "warning"),
-                                ("> 30", "Béo phì", "danger")
-                                })
+                <div class="card border-0 p-4" style="border-radius:20px !important">
+                    <h6 class="fw-bold mb-3">Phân loại BMI</h6>
+                    @foreach (var (range, label, color, bg) in new[] {
+                        ("< 18.5",    "Thiếu cân",   "#0ea5e9", "rgba(14,165,233,.1)"),
+                        ("18.5 – 25", "Bình thường", "#16a34a", "rgba(22,163,74,.1)"),
+                        ("25 – 30",   "Thừa cân",    "#f59e0b", "rgba(245,158,11,.1)"),
+                        ("> 30",      "Béo phì",     "#ef4444", "rgba(239,68,68,.1)"),
+                    })
                     {
-                        var isActive = label == (cat switch
-                        {
+                        var isActive = label == (cat switch {
                             "Underweight" => "Thiếu cân",
-                            "Normal" => "Bình thường",
-                            "Overweight" => "Thừa cân",
-                            _ => "Béo phì"
+                            "Normal"      => "Bình thường",
+                            "Overweight"  => "Thừa cân",
+                            _             => "Béo phì"
                         });
-
-                        <div class="d-flex justify-content-between align-items-center py-2 @(isActive ? "fw-bold" : "text-muted")">
-
-                            <span>
-                                <i class="bi bi-circle-fill text-@color me-2"
-                                   style="font-size:8px"></i>
+                        <div class="d-flex justify-content-between align-items-center py-2"
+                             style="border-bottom:1px solid rgba(226,232,240,.5)">
+                            <span class="d-flex align-items-center gap-2 @(isActive ? "fw-bold" : "text-muted")">
+                                <span class="rounded-circle d-inline-block" style="width:8px;height:8px;background:@color"></span>
                                 @label
                             </span>
-
-                            <span>@range</span>
-
+                            <span class="@(isActive ? "fw-semibold" : "text-muted") small">@range</span>
                             @if (isActive)
                             {
-                                <span class="badge bg-@color">
-                                    Bạn
-                                </span>
+                                <span class="badge rounded-pill px-2" style="background:@bg;color:@color;font-size:.72rem">Bạn</span>
                             }
-
                         </div>
                     }
-
                 </div>
             }
             else
             {
-                <!-- Preview -->
-                <div class="card border-0 shadow-sm rounded-4 p-4"
-                     id="previewCard">
-
+                <!-- Preview card -->
+                <div class="card border-0 p-4" style="border-radius:20px !important" id="previewCard">
                     <h5 class="fw-bold mb-3">
-                        <i class="bi bi-calculator me-2 text-success"></i>
-                        Xem trước kết quả
+                        <i class="bi bi-calculator me-2" style="color:#16a34a"></i>Xem trước kết quả
                     </h5>
-
                     <div class="text-center py-4">
-
-                        <i class="bi bi-person-lines-fill display-4 text-muted mb-3 d-block"></i>
-
-                        <p class="text-muted">
-                            Nhập thông tin để xem kết quả BMI & TDEE ngay
-                        </p>
-
+                        <i class="bi bi-person-lines-fill display-4 text-muted mb-3 d-block opacity-25"></i>
+                        <p class="text-muted small">Nhập thông tin để xem kết quả BMI & TDEE ngay</p>
                         <div id="previewResult" class="d-none">
-
                             <div class="row g-2">
-
                                 <div class="col-6">
-
-                                    <div class="bg-success-subtle rounded-3 p-3">
-
-                                        <small class="text-muted">
-                                            BMI
-                                        </small>
-
-                                        <div class="fs-2 fw-bold text-success"
-                                             id="prevBmi">
-                                            --
-                                        </div>
-
+                                    <div class="rounded-3 p-3" style="background:rgba(22,163,74,.08)">
+                                        <small class="text-muted d-block">BMI</small>
+                                        <div class="fw-bold" style="font-size:1.75rem;color:#16a34a" id="prevBmi">--</div>
                                     </div>
                                 </div>
-
                                 <div class="col-6">
-
-                                    <div class="bg-primary-subtle rounded-3 p-3">
-
-                                        <small class="text-muted">
-                                            TDEE
-                                        </small>
-
-                                        <div class="fs-2 fw-bold text-primary"
-                                             id="prevTdee">
-                                            --
-                                        </div>
-
-                                        <small class="text-muted">
-                                            kcal
-                                        </small>
-
+                                    <div class="rounded-3 p-3" style="background:rgba(59,130,246,.08)">
+                                        <small class="text-muted d-block">TDEE</small>
+                                        <div class="fw-bold" style="font-size:1.75rem;color:#3b82f6" id="prevTdee">--</div>
+                                        <small class="text-muted">kcal</small>
                                     </div>
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
                 </div>
             }
-
         </div>
     </div>
 </div>
 
 @section Scripts {
+<script>
+function calcPreview() {
+    const h  = parseFloat(document.getElementById('height')?.value);
+    const w  = parseFloat(document.getElementById('weight')?.value);
+    const a  = parseInt(document.getElementById('age')?.value);
+    const g  = document.getElementById('gender')?.value;
+    const al = document.getElementById('activity')?.value;
 
-    <script>
+    if (!h || !w || !a) return;
 
-        function calcPreview() {
+    const bmi     = w / Math.pow(h / 100, 2);
+    const bmrBase = 10 * w + 6.25 * h - 5 * a;
+    const bmr     = g === 'Female' ? bmrBase - 161 : bmrBase + 5;
+    const mult    = { Sedentary:1.2, LightlyActive:1.375, ModeratelyActive:1.55, VeryActive:1.725, ExtraActive:1.9 };
+    const tdee    = bmr * (mult[al] || 1.2);
 
-            const h  = parseFloat(document.getElementById('height')?.value);
-            const w  = parseFloat(document.getElementById('weight')?.value);
-            const a  = parseInt(document.getElementById('age')?.value);
+    const prevBmi  = document.getElementById('prevBmi');
+    const prevTdee = document.getElementById('prevTdee');
+    const res      = document.getElementById('previewResult');
 
-            const g  = document.getElementById('gender')?.value;
-            const al = document.getElementById('activity')?.value;
+    if (prevBmi)  prevBmi.textContent  = bmi.toFixed(1);
+    if (prevTdee) prevTdee.textContent = Math.round(tdee).toLocaleString('vi-VN');
+    if (res)      res.classList.remove('d-none');
+}
 
-            if (!h || !w || !a)
-                return;
-
-            const bmi = w / Math.pow(h / 100, 2);
-
-            const bmrBase = 10 * w + 6.25 * h - 5 * a;
-
-            const bmr =
-                g === 'Female'
-                    ? bmrBase - 161
-                    : bmrBase + 5;
-
-            const mult = {
-                Sedentary: 1.2,
-                LightlyActive: 1.375,
-                ModeratelyActive: 1.55,
-                VeryActive: 1.725,
-                ExtraActive: 1.9
-            };
-
-            const tdee = bmr * (mult[al] || 1.2);
-
-            const prevBmi  = document.getElementById('prevBmi');
-            const prevTdee = document.getElementById('prevTdee');
-            const res      = document.getElementById('previewResult');
-
-            if (prevBmi)
-                prevBmi.textContent = bmi.toFixed(1);
-
-            if (prevTdee)
-                prevTdee.textContent = Math.round(tdee).toLocaleString();
-
-            if (res)
-                res.classList.remove('d-none');
-        }
-
-        calcPreview();
-
-    </script>
-
+calcPreview();
+</script>
 }
