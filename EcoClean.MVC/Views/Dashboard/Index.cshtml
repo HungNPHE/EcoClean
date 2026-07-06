@@ -49,7 +49,16 @@
     var userGoal = profile.HasValue && profile.Value.TryGetProperty("goal", out var gl) ? gl.GetString() : null;
 }
 
-<div class="container py-4">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#EDF3E6;--paper-warm:#DEE9D4;--ink:#22301E;--ink-soft:rgba(34,48,30,.62);--ink-faint:rgba(34,48,30,.38);--herb:#4B7A4E;--herb-deep:#33552F;--herb-light:#7CA05E;--herb-tint:#E7EEE0;--line:rgba(34,48,30,.14);--serif:'Fraunces',Georgia,serif;--mono:'JetBrains Mono',monospace}
+.stat-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:1.25rem 1rem}
+.section-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:1.5rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--ink-faint)}
+.btn-herb{background:var(--herb);color:#fff;border:none}.btn-herb:hover{background:var(--herb-deep);color:#fff}
+</style>
+
+<div class="container py-4" style="font-family:'Inter',system-ui,sans-serif;color:var(--ink)"
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
         <div>
@@ -57,7 +66,7 @@
                 <i class="bi @greetIcon" style="color:#f59e0b;font-size:1.1rem"></i>
                 <span class="text-muted small fw-semibold">@greeting, @DateTime.Today.ToString("dddd, dd/MM/yyyy")</span>
             </div>
-            <h2 class="fw-bold mb-0" style="letter-spacing:-0.03em">
+            <h2 class="fw-bold mb-0" style="letter-spacing:-0.03em;font-family:var(--serif)">
                 @userName
                 @if (isPremium)
                 {
@@ -299,9 +308,9 @@
                 <div class="small text-muted">Quét ảnh thực phẩm, chatbot 24/7 và thực đơn AI cá nhân hóa cho @userName</div>
             </div>
             <a asp-controller="Premium" asp-action="Payment"
-               class="btn btn-sm rounded-pill fw-bold flex-shrink-0"
-               style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;white-space:nowrap">
-                Dùng thử ngay
+               class="btn btn-sm rounded-1 fw-bold flex-shrink-0 btn-herb"
+               style="white-space:nowrap">
+                Dùng thử ngay →
             </a>
         </div>
     }

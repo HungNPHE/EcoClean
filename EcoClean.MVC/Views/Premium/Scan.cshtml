@@ -3,19 +3,26 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container py-4">
-    <div class="d-flex align-items-center mb-4">
-        <div class="rounded-3 d-flex align-items-center justify-content-center me-3"
-             style="width:44px;height:44px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:1.2rem">
-            <i class="bi bi-camera-fill"></i>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#EDF3E6;--paper-warm:#DEE9D4;--ink:#22301E;--ink-soft:rgba(34,48,30,.62);--ink-faint:rgba(34,48,30,.38);--herb:#4B7A4E;--herb-deep:#33552F;--herb-tint:#E7EEE0;--line:rgba(34,48,30,.14);--serif:'Fraunces',Georgia,serif;--mono:'JetBrains Mono',monospace}
+.btn-herb{background:var(--herb)!important;color:#fff!important;border:none!important}.btn-herb:hover{background:var(--herb-deep)!important}
+.drop-zone{border:2px dashed var(--line);border-radius:4px;cursor:pointer;transition:background .15s}
+.drop-zone.drag-over,.drop-zone:hover{background:var(--herb-tint)}
+</style>
+
+<div class="container py-4" style="font-family:'Inter',system-ui,sans-serif;color:var(--ink)">
+    <!-- Page header -->
+    <div style="border-bottom:1px solid var(--line);padding-bottom:1.5rem;margin-bottom:1.75rem">
+        <div style="font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.5rem">
+            Tính năng AI
         </div>
-        <div>
-            <h2 class="fw-bold mb-0" style="letter-spacing:-0.02em">
-                Quét ảnh món ăn
-                <span class="badge ms-2 align-middle" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.65rem">Premium</span>
-            </h2>
-            <p class="text-muted mb-0 small">AI tự động nhận diện và phân tích dinh dưỡng</p>
-        </div>
+        <h1 style="font-family:var(--serif);font-weight:600;font-size:1.9rem;letter-spacing:-.02em;margin:0">
+            Quét ảnh món ăn
+        </h1>
+        <p style="color:var(--ink-soft);font-size:.95rem;margin-top:.35rem;margin-bottom:0">
+            Chụp ảnh bất kỳ món ăn — AI nhận diện và tính calo trong 3 giây
+        </p>
     </div>
 
     <div class="row g-4">
@@ -32,7 +39,7 @@
                     </div>
                     <p class="fw-semibold mb-1">Kéo thả ảnh vào đây</p>
                     <p class="text-muted small mb-3">hoặc</p>
-                    <label class="btn btn-eco-outline rounded-pill px-4 fw-semibold">
+                    <label class="btn btn-outline-herb rounded-1 px-4 fw-semibold" style="border:1.5px solid var(--herb);color:var(--herb);background:transparent">
                         <i class="bi bi-folder2-open me-2"></i>Chọn ảnh
                         <input type="file" id="fileInput" accept="image/*" class="d-none" onchange="handleFile(this)" />
                     </label>
@@ -42,9 +49,9 @@
                 <img id="preview" class="img-fluid rounded-3 d-none mb-3"
                      style="max-height:240px;width:100%;object-fit:cover" />
 
-                <button id="analyzeBtn" class="btn btn-premium w-100 py-2 fw-bold rounded-pill d-none"
+                <button id="analyzeBtn" class="btn btn-herb w-100 py-2 fw-semibold rounded-1 d-none"
                         onclick="analyzeImage()">
-                    <i class="bi bi-stars me-2"></i>Phân tích với AI
+                    <i class="bi bi-camera-fill me-2"></i>Phân tích với AI
                 </button>
             </div>
         </div>
@@ -115,7 +122,7 @@
                                    value="@DateTime.Today.ToString("yyyy-MM-dd")" />
                         </div>
                         <div class="col-3">
-                            <button class="btn btn-eco btn-sm w-100 rounded-3 fw-semibold" onclick="addToMealPlan()">
+                            <button class="btn btn-herb btn-sm w-100 rounded-1 fw-semibold" onclick="addToMealPlan()">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>

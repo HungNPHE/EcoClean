@@ -33,18 +33,18 @@
     try { if (!string.IsNullOrEmpty(insJson)) instructions = JsonSerializer.Deserialize<List<string>>(insJson) ?? new(); } catch { }
 }
 
-<div class="container py-4">
+<div class="container py-4" style="font-family:'Inter',system-ui,sans-serif;color:var(--ink)">
 
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb" style="font-size:.85rem">
+        <ol class="breadcrumb" style="font-size:.82rem;font-family:var(--mono)">
             <li class="breadcrumb-item">
-                <a asp-controller="Recipe" asp-action="Index" class="text-decoration-none" style="color:#16a34a">
-                    <i class="bi bi-book me-1"></i>Công thức
+                <a asp-controller="Recipe" asp-action="Index" class="text-decoration-none" style="color:var(--herb)">
+                    Công thức
                 </a>
             </li>
-            <li class="breadcrumb-item text-muted">@catVi.GetValueOrDefault(cat??"",cat??"")</li>
-            <li class="breadcrumb-item active text-muted">@name</li>
+            <li class="breadcrumb-item" style="color:var(--ink-faint)">@catVi.GetValueOrDefault(cat??"",cat??"")</li>
+            <li class="breadcrumb-item active" style="color:var(--ink-soft)">@name</li>
         </ol>
     </nav>
 
@@ -100,7 +100,7 @@
                 }
             </div>
 
-            <h1 class="fw-bold mb-2" style="font-size:2rem;letter-spacing:-0.03em">@name</h1>
+            <h1 class="fw-bold mb-2" style="font-size:2rem;letter-spacing:-0.03em;font-family:var(--serif)">@name</h1>
 
             @if (!string.IsNullOrEmpty(desc))
             {
@@ -217,20 +217,20 @@
         <div class="col-lg-3">
             @if (Context.Request.Cookies.ContainsKey("ecoclean_token"))
             {
-                <div class="card border-0" style="border-radius:20px;box-shadow:0 2px 16px rgba(0,0,0,.06)">
-                    <div class="card-header border-0 px-4 pt-4 pb-3" style="background:transparent">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-calendar-plus me-2" style="color:#16a34a"></i>Thêm vào lịch
+                <div class="card border-0" style="border-radius:4px;border:1px solid var(--line,rgba(34,48,30,.14))">
+                    <div class="card-header border-0 px-4 pt-4 pb-3" style="background:var(--herb-tint,#E7EEE0)">
+                        <h5 class="fw-bold mb-0" style="font-family:var(--serif,'Fraunces',serif);font-weight:600;font-size:1.05rem">
+                            Thêm vào lịch
                         </h5>
                     </div>
-                    <div class="card-body px-4 pb-4 pt-0">
+                    <div class="card-body px-4 pb-4 pt-3" style="background:#fff">
                         <form method="post" asp-controller="MealPlan" asp-action="Add">
                             <input type="hidden" name="title"    value="@name" />
                             <input type="hidden" name="recipeId" value="@id" />
                             <input type="hidden" name="calories" value="@cal" />
                             <div class="mb-2">
-                                <label class="form-label small fw-semibold text-muted">Bữa ăn</label>
-                                <select name="mealType" class="form-select form-select-sm">
+                                <label style="font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint,rgba(34,48,30,.38));display:block;margin-bottom:.3rem">Bữa ăn</label>
+                                <select name="mealType" class="form-select form-select-sm" style="border-radius:3px;border-color:var(--line,rgba(34,48,30,.14))">
                                     <option value="Breakfast">🌅 Bữa sáng</option>
                                     <option value="Lunch" selected>☀️ Bữa trưa</option>
                                     <option value="Dinner">🌙 Bữa tối</option>
@@ -238,11 +238,12 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold text-muted">Ngày</label>
+                                <label style="font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint,rgba(34,48,30,.38));display:block;margin-bottom:.3rem">Ngày</label>
                                 <input type="date" name="planDate" class="form-control form-control-sm"
+                                       style="border-radius:3px;border-color:var(--line,rgba(34,48,30,.14))"
                                        value="@DateTime.Today.ToString("yyyy-MM-dd")" />
                             </div>
-                            <button type="submit" class="btn btn-eco w-100 rounded-pill fw-semibold">
+                            <button type="submit" class="btn btn-herb w-100 fw-semibold rounded-1 py-2">
                                 <i class="bi bi-plus-lg me-1"></i>Thêm vào lịch
                             </button>
                         </form>
@@ -251,11 +252,11 @@
             }
             else
             {
-                <div class="card border-0 text-center p-4" style="border-radius:20px;background:#f8fafc">
-                    <i class="bi bi-calendar-plus display-5 mb-3" style="color:#cbd5e1"></i>
-                    <p class="text-muted small mb-3">Đăng nhập để thêm vào lịch ăn</p>
+                <div class="p-4 text-center" style="background:var(--herb-tint,#E7EEE0);border:1px solid var(--line);border-radius:4px">
+                    <i class="bi bi-calendar-plus d-block mb-3" style="font-size:2rem;color:var(--herb,#4B7A4E)"></i>
+                    <p style="color:var(--ink-soft);font-size:.88rem;margin-bottom:1rem">Đăng nhập để thêm vào lịch ăn</p>
                     <a asp-controller="Account" asp-action="Login"
-                       class="btn btn-eco rounded-pill fw-semibold w-100">Đăng nhập</a>
+                       class="btn btn-herb fw-semibold w-100 rounded-1">Đăng nhập →</a>
                 </div>
             }
         </div>

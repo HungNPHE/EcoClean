@@ -11,11 +11,17 @@
     var maxW    = logs.Any() ? logs.Max(l => l.TryGetProperty("weight", out var w) ? w.GetDouble() : 0)   : 0;
 }
 
-<div class="container py-4">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#EDF3E6;--paper-warm:#DEE9D4;--ink:#22301E;--ink-soft:rgba(34,48,30,.62);--ink-faint:rgba(34,48,30,.38);--herb:#4B7A4E;--herb-deep:#33552F;--herb-tint:#E7EEE0;--line:rgba(34,48,30,.14);--serif:'Fraunces',Georgia,serif;--mono:'JetBrains Mono',monospace}
+.btn-herb{background:var(--herb);color:#fff;border:none}.btn-herb:hover{background:var(--herb-deep);color:#fff}
+</style>
+
+<div class="container py-4" style="font-family:'Inter',system-ui,sans-serif;color:var(--ink)">
     <!-- Header -->
     <div class="d-flex align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1" style="letter-spacing:-0.03em">Theo dõi cân nặng</h2>
+            <h2 class="fw-bold mb-1" style="font-family:var(--serif);letter-spacing:-.02em">Theo dõi cân nặng</h2>
             <p class="text-muted mb-0">@logs.Count lần ghi chép trong 90 ngày qua</p>
         </div>
     </div>
@@ -103,7 +109,7 @@
                         <input type="text" name="notes" class="form-control"
                                placeholder="Cảm giác hôm nay..." />
                     </div>
-                    <button type="submit" class="btn btn-eco btn-sm w-100 rounded-pill fw-semibold">
+                    <button type="submit" class="btn btn-herb btn-sm w-100 rounded-1 fw-semibold">
                         <i class="bi bi-save me-1"></i>Lưu
                     </button>
                 </form>

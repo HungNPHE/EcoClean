@@ -6,7 +6,23 @@
     <title>@ViewData["Title"] — EcoClean</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+    :root{
+        --paper:#EDF3E6;--paper-warm:#DEE9D4;
+        --ink:#22301E;--ink-soft:rgba(34,48,30,.62);--ink-faint:rgba(34,48,30,.38);
+        --herb:#4B7A4E;--herb-deep:#33552F;--herb-light:#7CA05E;--herb-tint:#E7EEE0;
+        --line:rgba(34,48,30,.14);
+        --serif:'Fraunces',Georgia,serif;
+        --mono:'JetBrains Mono',monospace;
+    }
+    .btn-herb{background:var(--herb)!important;color:#fff!important;border:none!important}
+    .btn-herb:hover{background:var(--herb-deep)!important}
+    .btn-outline-herb{border:1.5px solid var(--herb)!important;color:var(--herb)!important;background:transparent!important}
+    .btn-outline-herb:hover{background:var(--herb)!important;color:#fff!important}
+    </style>
 </head>
 <body>
 
@@ -37,10 +53,10 @@
 <!-- ── Free trial banner (chỉ hiện khi đã login, chưa premium, còn lượt) -->
 @if (layoutCanUseFree && layoutFreeLeft <= 5)
 {
-    <div class="text-center py-2 px-3" style="background:linear-gradient(90deg,#92400e,#d97706,#92400e);font-size:.82rem;color:white;font-weight:600;letter-spacing:.01em">
+    <div class="text-center py-2 px-3" style="background:var(--herb-deep);font-size:.8rem;color:rgba(255,255,255,.9);font-family:var(--mono);font-weight:600;letter-spacing:.02em">
         <i class="bi bi-gift-fill me-1"></i>
-        Bạn còn <strong>@layoutFreeLeft / @layoutFreeTrialLimit lượt dùng thử</strong> tính năng AI miễn phí —
-        <a href="/Premium/Payment" style="color:white;text-decoration:underline">Nâng cấp Premium</a> để dùng không giới hạn
+        Còn <strong>@layoutFreeLeft / @layoutFreeTrialLimit lượt dùng thử</strong> AI miễn phí —
+        <a href="/Premium/Payment" style="color:white;text-decoration:underline">Nâng cấp Premium</a>
     </div>
 }
 

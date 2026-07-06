@@ -14,6 +14,20 @@
     --eco-danger:    #ef4444;
     --eco-purple:    #8b5cf6;
 
+    /* ── Herb palette (homepage design system) ── */
+    --paper:      #EDF3E6;
+    --paper-warm: #DEE9D4;
+    --ink:        #22301E;
+    --ink-soft:   rgba(34,48,30,.62);
+    --ink-faint:  rgba(34,48,30,.38);
+    --herb:       #4B7A4E;
+    --herb-deep:  #33552F;
+    --herb-light: #7CA05E;
+    --herb-tint:  #E7EEE0;
+    --line:       rgba(34,48,30,.14);
+    --serif:      'Fraunces', Georgia, serif;
+    --mono:       'JetBrains Mono', monospace;
+
     --bg-base:       #f8fafc;
     --bg-card:       #ffffff;
     --bg-muted:      #f1f5f9;

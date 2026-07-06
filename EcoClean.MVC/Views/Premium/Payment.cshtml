@@ -3,183 +3,147 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container py-5">
-    <!-- Header -->
-    <div class="text-center mb-5">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
-             style="width:60px;height:60px;background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 16px rgba(245,158,11,.35)">
-            <i class="bi bi-stars text-white fs-3"></i>
-        </div>
-        <h2 class="fw-bold mb-2" style="letter-spacing:-0.03em">Nâng cấp Premium</h2>
-        <p class="text-muted">Mở khoá toàn bộ tính năng AI của EcoClean</p>
-    </div>
+<style>
+:root{--paper:#EDF3E6;--paper-warm:#DEE9D4;--ink:#22301E;--ink-soft:rgba(34,48,30,.62);--ink-faint:rgba(34,48,30,.38);--herb:#4B7A4E;--herb-deep:#33552F;--herb-light:#7CA05E;--herb-tint:#E7EEE0;--line:rgba(34,48,30,.14);--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}
+.btn-herb{background:var(--herb);color:#fff;border:none}.btn-herb:hover{background:var(--herb-deep);color:#fff}
+.btn-outline-ink{border:1.5px solid var(--ink);color:var(--ink);background:transparent}.btn-outline-ink:hover{background:var(--ink);color:var(--paper)}
+.stub{background:#fff;border:1px solid var(--line);border-radius:2px}
+.chip{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.03em;padding:.35rem .75rem;border-radius:100px;border:1px solid var(--line)}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.plan-card{background:#fff;border:1.5px solid var(--line);border-radius:4px;padding:1.75rem;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.plan-card:hover{border-color:var(--herb);box-shadow:0 8px 24px rgba(75,122,78,.12)}
+.plan-card.selected{border-color:var(--herb);box-shadow:0 8px 24px rgba(75,122,78,.15);background:var(--herb-tint)}
+</style>
 
-    <!-- Plan selector -->
-    <div class="row g-4 justify-content-center mb-5">
-        <div class="col-md-4">
-            <div class="plan-card card p-4 text-center h-100"
-                 data-plan="Monthly" data-amount="49000"
-                 onclick="selectPlan(this)">
-                <div class="fw-bold text-muted small mb-1">GÓI THÁNG</div>
-                <div class="fw-bold mb-1" style="font-size:2.2rem;letter-spacing:-0.03em">49.000đ</div>
-                <div class="text-muted small mb-3">/ tháng</div>
-                <hr style="border-color:rgba(0,0,0,.06)">
-                <ul class="list-unstyled text-start small mb-0">
-                    @foreach (var item in new[] { "Quét ảnh phân tích dinh dưỡng", "Chatbot dinh dưỡng 24/7", "Thực đơn AI cá nhân hóa" })
-                    {
-                        <li class="d-flex align-items-center gap-2 py-1">
-                            <i class="bi bi-check-circle-fill text-success" style="font-size:.8rem"></i>
-                            @item
-                        </li>
-                    }
-                </ul>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="plan-card card p-4 text-center h-100 selected"
-                 data-plan="Yearly" data-amount="499000"
-                 onclick="selectPlan(this)">
-                <div class="d-inline-block px-2 py-1 rounded-pill mb-2"
-                     style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.7rem;font-weight:700">
-                    TIẾT KIỆM 15%
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<div style="font-family:var(--sans);background:var(--paper);min-height:calc(100vh - 64px);padding:4rem 0;color:var(--ink)">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <span class="eyebrow mb-3 d-block" style="color:var(--herb-deep);justify-content:center">
+                        <span style="width:6px;height:6px;border-radius:50%;background:var(--herb);display:inline-block"></span>
+                        Nâng cấp
+                    </span>
+                    <h1 class="fw-normal mb-2" style="font-family:var(--serif);font-size:2.2rem;letter-spacing:-.02em">Mở khoá tính năng AI</h1>
+                    <p style="color:var(--ink-soft)">Quét ảnh không giới hạn · Chatbot 24/7 · Thực đơn cá nhân hóa</p>
                 </div>
-                <div class="fw-bold text-muted small mb-1">GÓI NĂM</div>
-                <div class="fw-bold mb-1" style="font-size:2.2rem;letter-spacing:-0.03em;color:#d97706">499.000đ</div>
-                <div class="text-muted small mb-3">/ năm (~41.600đ/tháng)</div>
-                <hr style="border-color:rgba(245,158,11,.2)">
-                <ul class="list-unstyled text-start small mb-0">
-                    @foreach (var item in new[] { "Tất cả tính năng Premium", "Ưu tiên hỗ trợ", "Tiết kiệm nhất" })
-                    {
-                        <li class="d-flex align-items-center gap-2 py-1">
-                            <i class="bi bi-check-circle-fill text-warning" style="font-size:.8rem"></i>
-                            @item
-                        </li>
-                    }
-                </ul>
-            </div>
-        </div>
-    </div>
 
-    <!-- Payment section -->
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div id="paymentSection" class="text-center">
-                @if (Context.Request.Cookies.ContainsKey("ecoclean_token"))
-                {
-                    <button id="payBtn" class="btn btn-premium btn-lg fw-bold px-5 py-3 rounded-pill"
-                            onclick="createPayment()">
-                        <i class="bi bi-qr-code me-2"></i>Tạo mã QR thanh toán
-                    </button>
-                }
-                else
-                {
-                    <div class="card border-0 p-4" style="border-radius:16px;background:#fef9ec">
-                        <p class="text-muted mb-3">Bạn cần đăng nhập để thực hiện thanh toán</p>
-                        <a href="/Account/Login" class="btn btn-premium btn-lg fw-bold px-5 py-3 rounded-pill">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập để tiếp tục
+                <!-- Plan selector -->
+                <div class="row g-3 mb-5">
+                    <div class="col-md-6">
+                        <div class="plan-card" data-plan="Monthly" data-amount="49000" onclick="selectPlan(this)">
+                            <div class="eyebrow mb-2" style="color:var(--ink-faint)">Gói tháng</div>
+                            <div style="font-family:var(--serif);font-size:2rem;color:var(--ink)">49.000đ</div>
+                            <div style="color:var(--ink-faint);font-size:.82rem;margin-bottom:1rem">/tháng</div>
+                            @foreach (var item in new[]{"Quét ảnh AI không giới hạn","Chatbot dinh dưỡng 24/7","Thực đơn AI cá nhân hóa"}){
+                                <div class="d-flex align-items-center gap-2 mb-1" style="font-size:.85rem">
+                                    <i class="bi bi-check2" style="color:var(--herb)"></i><span style="color:var(--ink-soft)">@item</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="plan-card selected" data-plan="Yearly" data-amount="499000" onclick="selectPlan(this)">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="eyebrow" style="color:var(--herb-deep)">Gói năm</span>
+                                <span class="chip" style="border-color:rgba(75,122,78,.4);color:var(--herb-deep)">Tiết kiệm 15%</span>
+                            </div>
+                            <div style="font-family:var(--serif);font-size:2rem;color:var(--herb-deep)">499.000đ</div>
+                            <div style="color:var(--ink-faint);font-size:.82rem;margin-bottom:1rem">/năm · ~41.600đ/tháng</div>
+                            @foreach (var item in new[]{"Tất cả tính năng Premium","Ưu tiên hỗ trợ","Tiết kiệm hơn gói tháng"}){
+                                <div class="d-flex align-items-center gap-2 mb-1" style="font-size:.85rem">
+                                    <i class="bi bi-check2" style="color:var(--herb)"></i><span style="color:var(--ink-soft)">@item</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA / QR / States -->
+                <div id="paymentSection" class="text-center">
+                    @if (Context.Request.Cookies.ContainsKey("ecoclean_token"))
+                    {
+                        <button id="payBtn" class="btn btn-herb btn-lg fw-semibold px-5 py-3 rounded-1" onclick="createPayment()">
+                            <i class="bi bi-qr-code me-2"></i>Tạo mã QR thanh toán
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="stub p-4 text-center" style="max-width:400px;margin:0 auto">
+                            <p style="color:var(--ink-soft);margin-bottom:1rem">Bạn cần đăng nhập để thực hiện thanh toán</p>
+                            <a href="/Account/Login" class="btn btn-herb fw-semibold px-4 py-2 rounded-1">
+                                Đăng nhập để tiếp tục →
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- QR Section -->
+                <div id="qrSection" class="d-none">
+                    <div class="stub p-4" style="max-width:440px;margin:0 auto">
+                        <div class="eyebrow mb-3" style="color:var(--herb-deep)">Quét QR MoMo để thanh toán</div>
+                        <p style="color:var(--ink-soft);font-size:.88rem;margin-bottom:1.5rem">Mở app MoMo → Quét mã → Xác nhận</p>
+                        <div class="text-center mb-4">
+                            <img id="qrImage" src="" alt="QR Code" style="max-width:200px;border:1px solid var(--line);border-radius:4px" />
+                        </div>
+                        <div class="p-3 mb-3" style="background:var(--herb-tint);border:1px solid rgba(75,122,78,.3);border-radius:3px">
+                            <div class="eyebrow mb-1" style="color:var(--herb-deep)">Nội dung chuyển khoản (bắt buộc)</div>
+                            <div id="txRefDisplay" class="fw-semibold" style="font-family:var(--mono);font-size:.95rem;cursor:pointer;color:var(--herb-deep)"
+                                 onclick="copyTxRef(this)" title="Nhấn để copy">—</div>
+                            <div style="font-size:.72rem;color:var(--ink-faint);margin-top:.25rem;font-family:var(--mono)">Nhấn để copy</div>
+                        </div>
+                        <div class="p-3 mb-3" style="background:#fff;border:1px solid var(--line);border-radius:3px">
+                            <div class="eyebrow mb-2" style="color:var(--herb-deep)">Hướng dẫn</div>
+                            <ol class="mb-0 ps-3" style="font-size:.85rem;color:var(--ink-soft)">
+                                <li class="mb-1">Mở app <strong>MoMo</strong> → chọn <strong>Quét mã</strong></li>
+                                <li class="mb-1">Quét QR phía trên</li>
+                                <li class="mb-1">Điền <strong>đúng nội dung</strong> ở ô nội dung chuyển tiền</li>
+                                <li>Xác nhận → nhấn <strong>"Tôi đã thanh toán"</strong></li>
+                            </ol>
+                        </div>
+                        <button class="btn btn-herb fw-semibold w-100 py-2 rounded-1 mb-2" onclick="confirmPayment()">
+                            Tôi đã thanh toán
+                        </button>
+                        <button class="btn btn-outline-ink fw-semibold w-100 py-2 rounded-1" style="font-size:.88rem" onclick="resetPayment()">
+                            Huỷ & chọn gói khác
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pending -->
+                <div id="pendingSection" class="d-none text-center">
+                    <div class="stub p-5" style="max-width:440px;margin:0 auto">
+                        <div style="font-size:2.5rem;margin-bottom:1rem">⏳</div>
+                        <h4 class="fw-normal mb-2" style="font-family:var(--serif)">Đã nhận yêu cầu</h4>
+                        <p style="color:var(--ink-soft);font-size:.92rem;margin-bottom:1.5rem">
+                            Admin sẽ xác nhận trong vòng <strong>15–30 phút</strong>. Sau khi được duyệt, đăng xuất và đăng nhập lại.
+                        </p>
+                        <div class="p-3 mb-3 text-start" style="background:var(--herb-tint);border:1px solid rgba(75,122,78,.25);border-radius:3px">
+                            <div class="eyebrow mb-1" style="color:var(--herb-deep)">Mã đơn hàng</div>
+                            <div id="pendingTxRef" style="font-family:var(--mono);font-size:.85rem;word-break:break-all;color:var(--herb-deep)">—</div>
+                        </div>
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-herb fw-semibold px-4 py-2 rounded-1">
+                            Về Dashboard →
                         </a>
                     </div>
-                }
-            </div>
-
-            <!-- QR Section -->
-            <div id="qrSection" class="d-none">
-                <div class="card border-0 p-4" style="border-radius:20px !important">
-                    <div class="text-center mb-4">
-                        <h5 class="fw-bold mb-1">
-                            <i class="bi bi-qr-code me-2" style="color:#ae2070"></i>Quét QR MoMo để thanh toán
-                        </h5>
-                        <p class="text-muted small mb-0">Mở app MoMo → Quét mã → Xác nhận</p>
-                    </div>
-                    <div class="text-center mb-3">
-                        <img id="qrImage" src="" alt="QR Code"
-                             class="img-fluid rounded-3 shadow-sm" style="max-width:220px" />
-                    </div>
-
-                    <!-- Mã txRef nổi bật để user copy vào nội dung CK -->
-                    <div class="card border-0 p-3 mb-3 text-center"
-                         style="background:linear-gradient(135deg,#fdf2f8,#fce7f3);border-radius:12px !important">
-                        <div class="small text-muted mb-1">Nội dung chuyển khoản (bắt buộc)</div>
-                        <div id="txRefDisplay" class="fw-bold fs-6"
-                             style="color:#ae2070;letter-spacing:.05em;cursor:pointer"
-                             onclick="copyTxRef(this)" title="Nhấn để copy">
-                            —
-                        </div>
-                        <div class="small text-muted mt-1">
-                            <i class="bi bi-clipboard me-1"></i>Nhấn để copy
-                        </div>
-                    </div>
-
-                    <div class="card border-0 p-3 mb-3" style="background:#f0fdf4;border-radius:12px !important">
-                        <div class="fw-semibold small mb-2" style="color:#16a34a">
-                            <i class="bi bi-list-ol me-1"></i>Hướng dẫn thanh toán MoMo
-                        </div>
-                        <ol class="mb-0 ps-3 small text-muted">
-                            <li class="mb-1">Mở app <strong>MoMo</strong> → chọn <strong>Quét mã</strong></li>
-                            <li class="mb-1">Quét QR phía trên</li>
-                            <li class="mb-1">Điền <strong>đúng nội dung</strong> ở ô nội dung chuyển tiền</li>
-                            <li>Xác nhận thanh toán → nhấn <strong>"Tôi đã thanh toán"</strong></li>
-                        </ol>
-                    </div>
-
-                    <button class="btn btn-lg fw-bold w-100 py-2 rounded-pill mb-2"
-                            style="background:linear-gradient(135deg,#ae2070,#9b1b6a);color:white;border:none"
-                            onclick="confirmPayment()">
-                        <i class="bi bi-check-circle me-2"></i>Tôi đã thanh toán
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill" onclick="resetPayment()">
-                        Huỷ & chọn gói khác
-                    </button>
                 </div>
-            </div>
 
-            <!-- Success -->
-            <div id="successSection" class="d-none">
-                <div class="card border-0 p-5 text-center"
-                     style="border-radius:20px !important;background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 mx-auto"
-                         style="width:72px;height:72px;background:linear-gradient(135deg,#16a34a,#22c55e)">
-                        <i class="bi bi-check-lg text-white" style="font-size:2rem"></i>
+                <!-- Success -->
+                <div id="successSection" class="d-none text-center">
+                    <div class="stub p-5" style="max-width:440px;margin:0 auto">
+                        <div style="font-size:2.5rem;margin-bottom:1rem">✅</div>
+                        <h4 class="fw-normal mb-2" style="font-family:var(--serif)">Thanh toán thành công!</h4>
+                        <p style="color:var(--ink-soft);margin-bottom:1.5rem">Tài khoản của bạn đã được nâng cấp Premium.</p>
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-herb fw-semibold px-4 py-2 rounded-1">
+                            Về Dashboard →
+                        </a>
                     </div>
-                    <h4 class="fw-bold mb-2" style="color:#16a34a">Thanh toán thành công!</h4>
-                    <p class="text-muted mb-4">Tài khoản của bạn đã được nâng cấp Premium.<br>Cảm ơn bạn đã tin tưởng EcoClean!</p>
-                    <a asp-controller="Dashboard" asp-action="Index"
-                       class="btn btn-eco rounded-pill px-5 fw-bold">
-                        <i class="bi bi-house me-2"></i>Về Dashboard
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pending — chờ admin duyệt -->
-            <div id="pendingSection" class="d-none">
-                <div class="card border-0 p-5 text-center"
-                     style="border-radius:20px !important;background:linear-gradient(135deg,#fffbeb,#fef3c7)">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 mx-auto"
-                         style="width:72px;height:72px;background:linear-gradient(135deg,#f59e0b,#d97706)">
-                        <i class="bi bi-hourglass-split text-white" style="font-size:1.8rem"></i>
-                    </div>
-                    <h4 class="fw-bold mb-2" style="color:#d97706">Đã nhận yêu cầu!</h4>
-                    <p class="text-muted mb-3">
-                        Chúng tôi đã ghi nhận bạn đã chuyển khoản.<br>
-                        Admin sẽ xác nhận trong vòng <strong>15–30 phút</strong>.
-                    </p>
-                    <div class="card border-0 p-3 mb-4 text-start"
-                         style="background:rgba(245,158,11,.1);border-radius:12px !important">
-                        <div class="small fw-semibold mb-1" style="color:#92400e">
-                            <i class="bi bi-info-circle me-1"></i>Mã đơn hàng của bạn
-                        </div>
-                        <div id="pendingTxRef" class="fw-bold small" style="color:#d97706;word-break:break-all;letter-spacing:.04em">—</div>
-                        <div class="small text-muted mt-1">Lưu mã này để đối chiếu nếu cần hỗ trợ</div>
-                    </div>
-                    <p class="small text-muted mb-4">
-                        Sau khi được duyệt, đăng xuất và đăng nhập lại để cập nhật trạng thái Premium.
-                    </p>
-                    <a asp-controller="Dashboard" asp-action="Index"
-                       class="btn rounded-pill px-5 fw-bold"
-                       style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none">
-                        <i class="bi bi-house me-2"></i>Về Dashboard
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -187,9 +151,7 @@
 
 @section Scripts {
 <script>
-let selectedPlan = 'Yearly';
-let currentSubId = null;
-let currentTxRef = null;
+let selectedPlan = 'Yearly', currentSubId = null, currentTxRef = null;
 
 function selectPlan(el) {
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
@@ -200,41 +162,26 @@ function selectPlan(el) {
 async function createPayment() {
     const btn = document.getElementById('payBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang tạo...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px;border-width:2px"></span>Đang tạo...';
     try {
-        const res  = await fetch('/Premium/Subscribe', {
+        const res = await fetch('/Premium/Subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ plan: selectedPlan })
         });
-
-        // Chưa đăng nhập → server redirect về Login (trả HTML, không phải JSON)
-        if (res.redirected || res.url.includes('/Account/Login')) {
-            window.location.href = '/Account/Login';
-            return;
-        }
-        const contentType = res.headers.get('content-type') ?? '';
-        if (!contentType.includes('application/json')) {
-            window.location.href = '/Account/Login';
-            return;
-        }
-
+        if (res.redirected || res.url.includes('/Account/Login')) { window.location.href = '/Account/Login'; return; }
+        const ct = res.headers.get('content-type') ?? '';
+        if (!ct.includes('application/json')) { window.location.href = '/Account/Login'; return; }
         const data = await res.json();
-        currentSubId = data.id;
-        currentTxRef = data.transactionRef;
-
+        currentSubId = data.id; currentTxRef = data.transactionRef;
         if (data.qrCode) {
             document.getElementById('qrImage').src = data.qrCode;
-            const txDisplay = document.getElementById('txRefDisplay');
-            if (txDisplay) txDisplay.textContent = currentTxRef;
+            const txEl = document.getElementById('txRefDisplay');
+            if (txEl) txEl.textContent = currentTxRef;
             document.getElementById('paymentSection').classList.add('d-none');
             document.getElementById('qrSection').classList.remove('d-none');
-        } else {
-            alert('Không tạo được mã QR. Vui lòng thử lại.');
-        }
-    } catch (e) {
-        alert('Lỗi: ' + e.message);
-    }
+        } else { alert('Không tạo được mã QR. Vui lòng thử lại.'); }
+    } catch (e) { alert('Lỗi: ' + e.message); }
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-qr-code me-2"></i>Tạo mã QR thanh toán';
 }
@@ -242,34 +189,28 @@ async function createPayment() {
 async function confirmPayment() {
     if (!currentSubId) return;
     try {
-        const res  = await fetch('/Premium/ConfirmPayment', {
+        await fetch('/Premium/ConfirmPayment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ subId: currentSubId, txRef: currentTxRef ?? 'manual' })
         });
-        const data = await res.json();
-        // Với flow thủ công: luôn chuyển sang màn hình "Chờ duyệt"
-        // (status lúc này vẫn là Pending — admin phải duyệt thủ công)
         document.getElementById('qrSection').classList.add('d-none');
-        const pendingEl = document.getElementById('pendingTxRef');
-        if (pendingEl) pendingEl.textContent = currentTxRef ?? '—';
+        const el = document.getElementById('pendingTxRef');
+        if (el) el.textContent = currentTxRef ?? '—';
         document.getElementById('pendingSection').classList.remove('d-none');
-    } catch (e) {
-        alert('Lỗi gửi yêu cầu: ' + e.message);
-    }
+    } catch (e) { alert('Lỗi: ' + e.message); }
 }
 
 function copyTxRef(el) {
     navigator.clipboard.writeText(el.textContent.trim()).then(() => {
         const orig = el.textContent;
-        el.textContent = '✅ Đã copy!';
+        el.textContent = '✓ Đã copy!';
         setTimeout(() => el.textContent = orig, 1500);
     });
 }
 
 function resetPayment() {
-    currentSubId = null;
-    currentTxRef = null;
+    currentSubId = null; currentTxRef = null;
     document.getElementById('qrSection').classList.add('d-none');
     document.getElementById('paymentSection').classList.remove('d-none');
 }

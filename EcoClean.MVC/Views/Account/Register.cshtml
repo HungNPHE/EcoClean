@@ -3,79 +3,96 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div style="min-height:calc(100vh - 64px);display:flex;align-items:center;background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 50%,#eff6ff 100%)">
+<style>
+    :root{--paper:#EDF3E6;--paper-warm:#DEE9D4;--ink:#22301E;--ink-soft:rgba(34,48,30,.62);--ink-faint:rgba(34,48,30,.38);--herb:#4B7A4E;--herb-deep:#33552F;--herb-tint:#E7EEE0;--line:rgba(34,48,30,.14);--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}
+    .btn-herb{background:var(--herb);color:#fff;border:none}.btn-herb:hover{background:var(--herb-deep);color:#fff}
+    .auth-input{background:#fff;border:1px solid var(--line);border-radius:3px;padding:.65rem .9rem;font-size:.92rem;color:var(--ink);width:100%;transition:border-color .15s}
+    .auth-input:focus{outline:none;border-color:var(--herb);box-shadow:0 0 0 3px rgba(75,122,78,.12)}
+    .auth-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;display:block;margin-bottom:.4rem}
+    .auth-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:2.5rem;box-shadow:0 20px 50px rgba(34,48,30,.1)}
+    .eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<div style="min-height:calc(100vh - 64px);display:flex;align-items:center;background:var(--paper);font-family:var(--sans)">
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-5 col-lg-4">
 
-                <!-- Logo -->
-                <div class="text-center mb-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
-                         style="width:56px;height:56px;background:linear-gradient(135deg,#16a34a,#22c55e);box-shadow:0 4px 16px rgba(22,163,74,.35)">
-                        <i class="bi bi-person-plus-fill text-white fs-3"></i>
-                    </div>
-                    <h2 class="fw-bold mb-1" style="letter-spacing:-0.03em">Tạo tài khoản</h2>
-                    <p class="text-muted small">Bắt đầu hành trình Eat Clean của bạn</p>
+                <div class="text-center mb-5">
+                    <span class="eyebrow mb-3 d-block" style="color:var(--herb-deep);justify-content:center">
+                        <span style="width:6px;height:6px;border-radius:50%;background:var(--herb);display:inline-block"></span>
+                        EcoClean AI
+                    </span>
+                    <h1 class="fw-normal mb-2" style="font-family:var(--serif);font-size:2rem;letter-spacing:-.01em;color:var(--ink)">
+                        Tạo tài khoản
+                    </h1>
+                    <p style="color:var(--ink-soft);font-size:.92rem">Nhận ngay <strong>10 lượt AI miễn phí</strong> sau khi đăng ký</p>
                 </div>
 
-                <div class="card border-0 shadow-lg p-4" style="border-radius:20px !important">
+                <div class="auth-card">
                     @if (ViewBag.Error != null)
                     {
-                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
-                            <i class="bi bi-exclamation-circle-fill"></i>
+                        <div class="d-flex align-items-center gap-2 mb-4 p-3" style="background:#fef2f2;border:1px solid rgba(239,68,68,.25);border-radius:3px;color:#b91c1c;font-size:.88rem">
+                            <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
                             <span>@ViewBag.Error</span>
                         </div>
                     }
 
                     <form method="post" asp-action="Register">
                         <div class="mb-3">
-                            <label class="form-label">Họ và tên</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-person text-success"></i></span>
-                                <input type="text" name="fullName" class="form-control"
-                                       placeholder="Nguyễn Văn A" required autocomplete="name" />
-                            </div>
+                            <label class="auth-label">Họ và tên</label>
+                            <input type="text" name="fullName" class="auth-input"
+                                   placeholder="Nguyễn Văn A" required autocomplete="name" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope text-success"></i></span>
-                                <input type="email" name="email" class="form-control"
-                                       placeholder="email@example.com" required autocomplete="email" />
-                            </div>
+                            <label class="auth-label">Email</label>
+                            <input type="email" name="email" class="auth-input"
+                                   placeholder="ban@example.com" required autocomplete="email" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Mật khẩu</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock text-success"></i></span>
-                                <input type="password" name="password" id="pwInput" class="form-control"
-                                       placeholder="Tối thiểu 6 ký tự" minlength="6" required />
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePw()">
+                            <label class="auth-label">Mật khẩu</label>
+                            <div style="position:relative">
+                                <input type="password" name="password" id="pwInput" class="auth-input"
+                                       placeholder="Tối thiểu 6 ký tự" minlength="6" required
+                                       style="padding-right:2.8rem" />
+                                <button type="button" onclick="togglePw()"
+                                        style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-faint);cursor:pointer;padding:0">
                                     <i class="bi bi-eye" id="pwEye"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">Xác nhận mật khẩu</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock-fill text-success"></i></span>
-                                <input type="password" name="confirmPassword" id="cpInput" class="form-control"
-                                       placeholder="Nhập lại mật khẩu" required />
-                            </div>
-                            <div id="pwMatchMsg" class="mt-1" style="font-size:.8rem"></div>
+                            <label class="auth-label">Xác nhận mật khẩu</label>
+                            <input type="password" name="confirmPassword" id="cpInput" class="auth-input"
+                                   placeholder="Nhập lại mật khẩu" required />
+                            <div id="pwMatchMsg" class="mt-1" style="font-size:.78rem;font-family:var(--mono)"></div>
                         </div>
-                        <button type="submit" id="submitBtn" class="btn btn-eco w-100 py-2 rounded-pill fw-bold">
-                            <i class="bi bi-person-check me-2"></i>Tạo tài khoản
+                        <button type="submit" id="submitBtn" class="btn btn-herb w-100 fw-semibold py-2 rounded-1" style="font-size:.95rem">
+                            Tạo tài khoản
                         </button>
                     </form>
 
-                    <div class="text-center mt-4 pt-3 border-top">
-                        <span class="text-muted small">Đã có tài khoản? </span>
+                    <div class="text-center mt-4 pt-4" style="border-top:1px solid var(--line)">
+                        <span style="color:var(--ink-faint);font-size:.88rem">Đã có tài khoản? </span>
                         <a asp-controller="Account" asp-action="Login"
-                           class="fw-semibold text-decoration-none" style="color:#16a34a">
-                            Đăng nhập
+                           style="color:var(--herb-deep);font-weight:600;text-decoration:none;font-size:.88rem">
+                            Đăng nhập →
                         </a>
                     </div>
+                </div>
+
+                <!-- Free trial perks -->
+                <div class="mt-4 p-3" style="background:var(--herb-tint);border:1px solid rgba(75,122,78,.25);border-radius:4px">
+                    <div class="eyebrow mb-2" style="color:var(--herb-deep)">Sau khi đăng ký</div>
+                    @foreach (var item in new[]{"10 lượt quét ảnh AI miễn phí","Tính BMI & TDEE cá nhân hóa","500+ công thức Eat Clean"}){
+                        <div class="d-flex align-items-center gap-2 mb-1" style="font-size:.82rem">
+                            <i class="bi bi-check2" style="color:var(--herb)"></i>
+                            <span style="color:var(--ink-soft)">@item</span>
+                        </div>
+                    }
                 </div>
 
             </div>
@@ -91,16 +108,15 @@ function togglePw() {
     i.type = i.type === 'password' ? 'text' : 'password';
     e.className = i.type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
 }
-
 document.getElementById('cpInput').addEventListener('input', function () {
     const pw  = document.getElementById('pwInput').value;
     const msg = document.getElementById('pwMatchMsg');
     const btn = document.getElementById('submitBtn');
     if (this.value && this.value !== pw) {
-        msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Mật khẩu không khớp</span>';
+        msg.innerHTML = '<span style="color:#b91c1c">✗ Mật khẩu không khớp</span>';
         btn.disabled = true;
     } else {
-        msg.innerHTML = this.value ? '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Mật khẩu khớp</span>' : '';
+        msg.innerHTML = this.value ? '<span style="color:var(--herb)">✓ Mật khẩu khớp</span>' : '';
         btn.disabled = false;
     }
 });

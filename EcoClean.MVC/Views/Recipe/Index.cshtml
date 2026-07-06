@@ -20,25 +20,29 @@
 }
 
 <!-- Hero banner -->
-<div style="background:linear-gradient(135deg,#064e3b,#065f46);padding:3rem 0">
+<div style="background:var(--paper-warm,#DEE9D4);border-bottom:1px solid rgba(34,48,30,.14);padding:2.5rem 0">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-7">
-                <h1 class="fw-bold text-white mb-2" style="letter-spacing:-0.03em">
-                    Thư viện Eat Clean
+                <div style="display:inline-flex;align-items:center;gap:.5rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:#33552F;margin-bottom:.75rem">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#4B7A4E;display:inline-block"></span>
+                    Thư viện
+                </div>
+                <h1 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:2rem;letter-spacing:-.02em;color:#22301E;margin-bottom:.5rem">
+                    Công thức Eat Clean
                 </h1>
-                <p class="text-white mb-0" style="opacity:.75">
+                <p style="color:rgba(34,48,30,.62);margin:0">
                     @recipes.Count món ăn lành mạnh, đầy đủ dinh dưỡng
                 </p>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-5 mt-3 mt-md-0">
                 <form method="get" class="d-flex gap-2">
-                    <input type="text" name="tag" class="form-control rounded-pill"
+                    <input type="text" name="tag" class="form-control"
+                           style="background:#fff;border:1px solid rgba(34,48,30,.14);border-radius:3px;color:#22301E"
                            placeholder="Tìm theo tag: low-carb, high-protein..."
-                           style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white"
                            value="@(Context.Request.Query["tag"])" />
-                    <button type="submit" class="btn rounded-pill fw-semibold flex-shrink-0"
-                            style="background:white;color:#16a34a">
+                    <button type="submit" class="btn fw-semibold flex-shrink-0 rounded-1"
+                            style="background:#4B7A4E;color:#fff;border:none">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
@@ -76,25 +80,25 @@
                        value="@(Context.Request.Query["tag"])" />
             </div>
             <div class="col-md-3">
-                <button type="submit" class="btn btn-eco w-100 rounded-pill">
+                <button type="submit" class="btn btn-herb w-100 rounded-1 fw-semibold">
                     <i class="bi bi-search me-1"></i>Tìm kiếm
                 </button>
             </div>
         </form>
     </div>
 
-    <!-- Category pills -->
     <div class="d-flex gap-2 mb-4 flex-nowrap overflow-auto pb-1">
-        <a class="btn btn-sm rounded-pill fw-semibold flex-shrink-0 @(ViewBag.Category == null ? "btn-eco" : "btn-outline-secondary")"
-           asp-action="Index">
-            <i class="bi bi-grid me-1"></i>Tất cả
+        <a class="btn btn-sm rounded-1 fw-semibold flex-shrink-0"
+           asp-action="Index"
+           style="@(ViewBag.Category == null ? "background:var(--herb,#4B7A4E);color:#fff;border:none" : "background:transparent;color:var(--ink-soft,rgba(34,48,30,.62));border:1px solid var(--line,rgba(34,48,30,.14))")">
+            Tất cả
         </a>
         @foreach (var c in categories)
         {
             var isActive = ViewBag.Category?.ToString() == c;
-            <a class="btn btn-sm rounded-pill fw-semibold flex-shrink-0"
+            <a class="btn btn-sm rounded-1 fw-semibold flex-shrink-0"
                asp-action="Index" asp-route-category="@c"
-               style="background:@(isActive ? catColor.GetValueOrDefault(c,"#16a34a") : "transparent");color:@(isActive ? "white" : catColor.GetValueOrDefault(c,"#64748b"));border:1.5px solid @catColor.GetValueOrDefault(c,"#e2e8f0")">
+               style="@(isActive ? "background:var(--herb,#4B7A4E);color:#fff;border:none" : "background:transparent;color:var(--ink-soft,rgba(34,48,30,.62));border:1px solid var(--line,rgba(34,48,30,.14))")">
                 <i class="bi @catIcon.GetValueOrDefault(c,"bi-circle") me-1"></i>@catVi.GetValueOrDefault(c,c)
             </a>
         }
@@ -106,7 +110,7 @@
         <div class="text-center py-5">
             <i class="bi bi-search display-4 text-muted d-block mb-3 opacity-25"></i>
             <p class="text-muted">Không tìm thấy công thức phù hợp</p>
-            <a asp-action="Index" class="btn btn-eco-outline rounded-pill px-4">Xem tất cả</a>
+            <a asp-action="Index" class="btn rounded-1 px-4 fw-semibold" style="border:1.5px solid var(--herb,#4B7A4E);color:var(--herb,#4B7A4E)">Xem tất cả</a>
         </div>
     }
 
@@ -194,9 +198,9 @@
                     </div>
                     <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
                         <a asp-controller="Recipe" asp-action="Detail" asp-route-id="@id"
-                           class="btn btn-sm w-100 rounded-pill fw-semibold"
-                           style="background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.2)">
-                            <i class="bi bi-eye me-1"></i>Xem chi tiết
+                           class="btn btn-sm w-100 rounded-1 fw-semibold btn-outline-herb"
+                           style="border:1.5px solid var(--herb,#4B7A4E);color:var(--herb,#4B7A4E)">
+                            Xem chi tiết →
                         </a>
                     </div>
                 </div>
